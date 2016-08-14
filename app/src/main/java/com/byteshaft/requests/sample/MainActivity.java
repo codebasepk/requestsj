@@ -1,7 +1,9 @@
-package com.byteshaft.requests;
+package com.byteshaft.requests.sample;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+
+import com.byteshaft.requests.HttpRequest;
 
 public class MainActivity extends AppCompatActivity {
 

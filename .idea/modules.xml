@@ -3,9 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/requests/library.iml" filepath="$PROJECT_DIR$/requests/library.iml" />
       <module fileurl="file://$PROJECT_DIR$/request-project.iml" filepath="$PROJECT_DIR$/request-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/requests.iml" filepath="$PROJECT_DIR$/requests.iml" />
       <module fileurl="file://$PROJECT_DIR$/requests/requests.iml" filepath="$PROJECT_DIR$/requests/requests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/requests/requests-requests.iml" filepath="$PROJECT_DIR$/requests/requests-requests.iml" />
     </modules>
   </component>
 </project>

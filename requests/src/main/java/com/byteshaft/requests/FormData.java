@@ -95,16 +95,15 @@ public class FormData {
         String preContentString = getFieldPreContentWriteString(contentType, fieldName, value);
         mContentLength += preContentString.length();
         data.setPreContentData(preContentString);
-        String postContentString = getFieldPostContentWriteString(contentType);
         if (contentType == TYPE_CONTENT_TEXT) {
             mContentLength += value.length();
-            mContentLength += postContentString.length();
         } else if (contentType == TYPE_CONTENT_FILE) {
             File file = new File(value);
             mContentLength += file.length();
-            mContentLength += postContentString.length();
         }
         data.setContent(value);
+        String postContentString = getFieldPostContentWriteString(contentType);
+        mContentLength += postContentString.length();
         data.setPostContentData(postContentString);
         mData.add(data);
     }

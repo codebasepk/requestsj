@@ -23,32 +23,31 @@ import java.util.ArrayList;
 public class FormData {
 
     private static final String CHARSET = "UTF-8";
-    private static final String NEW_LINE = "\r\n";
+    private static final String CRLF = "\r\n";
     private static final String DASHES = "--";
     private static final String BOUNDARY_LINE = "---------------------------";
     private static final String SEMICOLON = "; ";
     private ArrayList<MultiPartData> mData;
     private int mContentLength = FINISH_LINE.length();
+    private int mFilesCount = 0;
 
-    public static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
+    protected static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
+    protected static String FINISH_LINE = String.format(
+            "%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF
+    );
+
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;
-    public static String FINISH_LINE = String.format(
-            "%s%s%s%s", DASHES, BOUNDARY, DASHES, NEW_LINE
-    );
 
     public FormData() {
         mData = new ArrayList<>();
     }
 
     private String getContentTypeString(int contentType) {
-        switch (contentType) {
-            case TYPE_CONTENT_TEXT:
-                return String.format("Content-Type: text/plain; charset=%s", CHARSET);
-            case TYPE_CONTENT_FILE:
-                return "Content-Type: Content-Transfer-Encoding: binary";
-            default:
-                throw new UnsupportedOperationException("Invalid content type.");
+        if (contentType == TYPE_CONTENT_TEXT) {
+            return String.format("Content-Type: text/plain; charset=%s", CHARSET);
+        } else {
+            return "Content-Type: Content-Transfer-Encoding: binary";
         }
     }
 
@@ -56,40 +55,37 @@ public class FormData {
         String simpleDispositionLine = String.format(
                 "Content-Disposition: form-data; name=\"%s\"", fieldName
         );
-        switch (fieldType) {
-            case TYPE_CONTENT_TEXT:
-                return simpleDispositionLine;
-            case TYPE_CONTENT_FILE:
-                String fileNameLine = String.format("filename=\"%s\"", fileName);
-                return simpleDispositionLine + SEMICOLON + fileNameLine;
-            default:
-                throw new UnsupportedOperationException("Invalid content type.");
+        if (fieldType == TYPE_CONTENT_TEXT) {
+            return simpleDispositionLine;
+        } else {
+            String fileNameLine = String.format("filename=\"%s\"", fileName);
+            return simpleDispositionLine + SEMICOLON + fileNameLine;
         }
     }
 
     private String getFieldPreContentWriteString(int contentType, String fieldName, String value) {
         return DASHES
                 + BOUNDARY
-                + NEW_LINE
+                + CRLF
                 + getFieldDispositionLine(contentType, fieldName, value)
-                + NEW_LINE
+                + CRLF
                 + getContentTypeString(contentType)
-                + NEW_LINE
-                + NEW_LINE;
+                + CRLF
+                + CRLF;
     }
 
     private String getFieldPostContentWriteString(int contentType) {
-        switch (contentType) {
-            case TYPE_CONTENT_TEXT:
-                return NEW_LINE;
-            case TYPE_CONTENT_FILE:
-                return NEW_LINE + NEW_LINE;
-            default:
-                throw new UnsupportedOperationException("Invalid content type.");
+        if (contentType == TYPE_CONTENT_TEXT) {
+            return CRLF;
+        } else {
+            return CRLF + CRLF;
         }
     }
 
     public void append(int contentType, String fieldName, String value) {
+        if (contentType != TYPE_CONTENT_FILE && contentType != TYPE_CONTENT_TEXT) {
+            throw new UnsupportedOperationException("Invalid content type.");
+        }
         MultiPartData data = new MultiPartData();
         data.setContentType(contentType);
         String preContentString = getFieldPreContentWriteString(contentType, fieldName, value);
@@ -97,9 +93,10 @@ public class FormData {
         data.setPreContentData(preContentString);
         if (contentType == TYPE_CONTENT_TEXT) {
             mContentLength += value.length();
-        } else if (contentType == TYPE_CONTENT_FILE) {
+        } else {
             File file = new File(value);
             mContentLength += file.length();
+            mFilesCount += 1;
         }
         data.setContent(value);
         String postContentString = getFieldPostContentWriteString(contentType);
@@ -112,6 +109,10 @@ public class FormData {
         return mContentLength;
     }
 
+    public int getFilesCount() {
+        return mFilesCount;
+    }
+
     public ArrayList<MultiPartData> getData() {
         return mData;
     }
@@ -122,7 +123,11 @@ public class FormData {
         private String mContent;
         private String mPostContentData;
 
-        public void setContentType(int contentType) {
+        private MultiPartData() {
+
+        }
+
+        private void setContentType(int contentType) {
             mContentType = contentType;
         }
 
@@ -130,7 +135,7 @@ public class FormData {
             return mContentType;
         }
 
-        public void setPreContentData(String preContentData) {
+        private void setPreContentData(String preContentData) {
             mPreContentData = preContentData;
         }
 
@@ -138,7 +143,7 @@ public class FormData {
             return mPreContentData;
         }
 
-        public void setPostContentData(String postContentData) {
+        private void setPostContentData(String postContentData) {
             mPostContentData = postContentData;
         }
 
@@ -146,7 +151,7 @@ public class FormData {
             return mPostContentData;
         }
 
-        public void setContent(String content) {
+        private void setContent(String content) {
             mContent = content;
         }
 

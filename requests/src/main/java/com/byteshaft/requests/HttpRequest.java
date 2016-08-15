@@ -19,29 +19,27 @@ package com.byteshaft.requests;
 
 import android.content.Context;
 
-import com.byteshaft.requests.utils.HttpRequestUtil;
-
 import java.io.File;
 import java.net.HttpURLConnection;
 
-public class HttpRequest extends HttpRequestUtil {
+public class HttpRequest extends BaseHttpRequest {
 
     public static final short STATE_UNSET = 0;
     public static final short STATE_OPENED = 1;
     public static final short STATE_HEADERS_RECEIVED = 2;
     public static final short STATE_LOADING = 3;
     public static final short STATE_DONE = 4;
-    public static final String CONTENT_TYPE_JSON = "application/json";
-    public static final String CONTENT_TYPE_FORM = String.format(
-            "multipart/form-data; boundary=%s", FormData.BOUNDARY
-    );
 
     public HttpRequest(Context context) {
         super(context);
         mRequest = this;
     }
 
-    public interface FileUploadProgressListener {
+    public interface OnErrorListener {
+        void onError();
+    }
+
+    public interface OnFileUploadProgressListener {
         void onFileUploadProgress(File file, long uploaded, long total);
     }
 
@@ -49,12 +47,16 @@ public class HttpRequest extends HttpRequestUtil {
         void onReadyStateChange(HttpURLConnection connection, int readyState);
     }
 
-    public void setOnReadyStateChangeListener(OnReadyStateChangeListener listener) {
-        addReadyStateListener(listener);
+    public void setOnErrorListener(OnErrorListener listener) {
+        addOnErrorListener(listener);
     }
 
-    public void setOnFileUploadProgressListener(FileUploadProgressListener listener) {
-        addProgressUpdateListener(listener);
+    public void setOnFileUploadProgressListener(OnFileUploadProgressListener listener) {
+        addOnProgressUpdateListener(listener);
+    }
+
+    public void setOnReadyStateChangeListener(OnReadyStateChangeListener listener) {
+        addOnReadyStateListener(listener);
     }
 
     public void open(String requestMethod, String url) {

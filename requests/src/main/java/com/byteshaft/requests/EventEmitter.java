@@ -21,7 +21,6 @@ import android.content.Context;
 import android.os.Handler;
 
 import java.io.File;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
 class EventEmitter {
@@ -42,14 +41,14 @@ class EventEmitter {
 
     protected void emitOnReadyStateChange(
             ArrayList<HttpRequest.OnReadyStateChangeListener> listeners,
-            final HttpURLConnection connection,
+            final HttpRequest request,
             final int readyState
     ) {
         for (final HttpRequest.OnReadyStateChangeListener listener : listeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onReadyStateChange(connection, readyState);
+                    listener.onReadyStateChange(request, readyState);
                 }
             });
         }
@@ -57,15 +56,16 @@ class EventEmitter {
 
     protected void emitOnFileUploadProgress(
             ArrayList<HttpRequest.OnFileUploadProgressListener> listeners,
+            final HttpRequest request,
             final File file,
-            final long uploaded,
+            final long loaded,
             final long total
     ) {
         for (final HttpRequest.OnFileUploadProgressListener listener : listeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onFileUploadProgress(file, uploaded, total);
+                    listener.onFileUploadProgress(request, file, loaded, total);
                 }
             });
         }

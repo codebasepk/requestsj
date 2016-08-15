@@ -67,8 +67,19 @@ public class RequestBase {
     protected void readResponse() {
         mReadyState = HttpRequest.STATE_LOADING;
         mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
+        InputStream inputStream;
         try {
-            InputStream inputStream = mConnection.getInputStream();
+            inputStream = mConnection.getInputStream();
+        } catch (IOException ignore) {
+            inputStream = mConnection.getErrorStream();
+        }
+        readFromInputStream(inputStream);
+        mReadyState = HttpRequest.STATE_DONE;
+        mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
+    }
+
+    private void readFromInputStream(InputStream inputStream) {
+        try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder output = new StringBuilder();
             String line;
@@ -76,11 +87,9 @@ public class RequestBase {
                 output.append(line).append('\n');
             }
             mResponseText = output.toString();
-        } catch (IOException ignore) {
-
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        mReadyState = HttpRequest.STATE_DONE;
-        mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
     }
 
     protected void sendRequestData(String body, boolean closeOnDone) {

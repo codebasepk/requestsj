@@ -38,6 +38,7 @@ public class HttpRequest extends HttpRequestUtil {
 
     public HttpRequest(Context context) {
         super(context);
+        mRequest = this;
     }
 
     public interface FileUploadProgressListener {

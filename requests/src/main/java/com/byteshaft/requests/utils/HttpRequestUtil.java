@@ -47,6 +47,8 @@ public class HttpRequestUtil extends RequestBase {
             @Override
             public void run() {
                 mConnection.setRequestProperty("Content-Type", contentType);
+                mConnection.setDoOutput(true);
+                mConnection.setChunkedStreamingMode(0);
                 ArrayList<FormData.MultiPartData> requestItems = data.getData();
                 for (FormData.MultiPartData item : requestItems) {
                     sendRequestData(item.getPreContentData(), false);

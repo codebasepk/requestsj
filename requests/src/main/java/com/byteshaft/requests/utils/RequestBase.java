@@ -110,7 +110,7 @@ public class RequestBase {
         try {
             mOutputStream.flush();
             FileInputStream inputStream = new FileInputStream(uploadFile);
-            final byte[] buffer = new byte[4096];
+            final byte[] buffer = new byte[512];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 mOutputStream.write(buffer, 0, bytesRead);

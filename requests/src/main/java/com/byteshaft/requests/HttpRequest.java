@@ -40,11 +40,11 @@ public class HttpRequest extends BaseHttpRequest {
     }
 
     public interface OnFileUploadProgressListener {
-        void onFileUploadProgress(File file, long uploaded, long total);
+        void onFileUploadProgress(HttpRequest request, File file, long loaded, long total);
     }
 
     public interface OnReadyStateChangeListener {
-        void onReadyStateChange(HttpURLConnection connection, int readyState);
+        void onReadyStateChange(HttpRequest request, int readyState);
     }
 
     public void setOnErrorListener(OnErrorListener listener) {
@@ -99,10 +99,22 @@ public class HttpRequest extends BaseHttpRequest {
     }
 
     public short getStatus() {
-        return 0;
+        return mStatus;
+    }
+
+    public String getStatusText() {
+        return mStatusText;
     }
 
     public String getResponseHeader(String headerName) {
         return mConnection.getHeaderField(headerName);
+    }
+
+    public int getTotalFiles() {
+        return mFilesCount;
+    }
+
+    public int getCurrentFileNumber() {
+        return mCurrentFileNumber;
     }
 }

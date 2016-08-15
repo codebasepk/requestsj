@@ -33,8 +33,12 @@ import java.util.ArrayList;
 class BaseHttpRequest {
 
     protected HttpURLConnection mConnection;
+    protected int mFilesCount = 0;
+    protected int mCurrentFileNumber = 0;
     protected OutputStream mOutputStream;
-    protected String mResponseText = "";
+    protected short mStatus = 0;
+    protected String mStatusText;
+    protected String mResponseText;
     protected short mReadyState = HttpRequest.STATE_UNSET;
     protected String mUrl;
     protected HttpRequest mRequest;
@@ -56,11 +60,7 @@ class BaseHttpRequest {
     }
 
     private void emitOnReadyStateChange() {
-        mEventEmitter.emitOnReadyStateChange(
-                mOnReadyStateChangeListeners,
-                mConnection,
-                mReadyState
-        );
+        mEventEmitter.emitOnReadyStateChange(mOnReadyStateChangeListeners, mRequest, mReadyState);
     }
 
     protected void openConnection(String requestMethod, String url) {
@@ -92,6 +92,7 @@ class BaseHttpRequest {
     protected void sendRequest(String contentType, final FormData data) {
         mConnection.setRequestProperty("Content-Type", contentType);
         mConnection.setFixedLengthStreamingMode(data.getContentLength());
+        mFilesCount = data.getFilesCount();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -101,6 +102,7 @@ class BaseHttpRequest {
                     if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
                         sendRequestData(item.getContent(), false);
                     } else {
+                        mCurrentFileNumber += 1;
                         writeContent(item.getContent());
                     }
                     sendRequestData(item.getPostContentData(), false);
@@ -118,13 +120,24 @@ class BaseHttpRequest {
         try {
             inputStream = mConnection.getInputStream();
             readFromInputStream(inputStream);
+            assignResponseCodeAndMessage();
             mReadyState = HttpRequest.STATE_DONE;
             emitOnReadyStateChange();
         } catch (IOException ignore) {
             inputStream = mConnection.getErrorStream();
             readFromInputStream(inputStream);
+            assignResponseCodeAndMessage();
             mReadyState = HttpRequest.STATE_DONE;
             mEventEmitter.emitOnError(mOnErrorListeners);
+        }
+    }
+
+    private void assignResponseCodeAndMessage() {
+        try {
+            mStatus = (short) mConnection.getResponseCode();
+            mStatusText = mConnection.getResponseMessage();
+        } catch (IOException ignore) {
+
         }
     }
 
@@ -178,6 +191,8 @@ class BaseHttpRequest {
                 mEventEmitter.emitOnFileUploadProgress(
                         mOnFileUploadProgressListeners,
                         uploadFile,
+                        mCurrentFileNumber,
+                        mFilesCount,
                         uploaded,
                         total
                 );

@@ -82,4 +82,24 @@ public class HttpRequest extends HttpRequestUtil {
     public String getResponseText() {
         return mResponseText;
     }
+
+    public HttpURLConnection getConnection() {
+        return mConnection;
+    }
+
+    public short getReadyState() {
+        return mReadyState;
+    }
+
+    public String getResponseURL() {
+        return mUrl;
+    }
+
+    public short getStatus() {
+        return 0;
+    }
+
+    public String getResponseHeader(String headerName) {
+        return mConnection.getHeaderField(headerName);
+    }
 }

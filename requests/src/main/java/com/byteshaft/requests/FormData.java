@@ -28,7 +28,7 @@ public class FormData {
     private static final String SEMICOLON = "; ";
     private ArrayList<MultiPartData> mData;
 
-    public static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis() % 1000;
+    public static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;
     public static String FINISH_LINE = String.format(

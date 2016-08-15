@@ -37,21 +37,24 @@ public class RequestBase {
     protected HttpURLConnection mConnection;
     protected OutputStream mOutputStream;
     protected String mResponseText = "";
-    protected int mReadyState;
+    protected short mReadyState = HttpRequest.STATE_UNSET;
+    protected String mUrl;
+    protected HttpRequest mRequest;
+
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mStateChangeListeners;
     private ArrayList<HttpRequest.FileUploadProgressListener> mProgressListeners;
     private ListenersUtil mListenersUtil;
 
     protected RequestBase(Context context) {
-        mReadyState = HttpRequest.STATE_UNSET;
         mStateChangeListeners = new ArrayList<>();
         mProgressListeners = new ArrayList<>();
         mListenersUtil = ListenersUtil.getInstance(context);
     }
 
     protected void openConnection(String requestMethod, String url) {
+        mUrl = url;
         try {
-            URL urlObject = new URL(url);
+            URL urlObject = new URL(mUrl);
             mConnection = (HttpURLConnection) urlObject.openConnection();
             mConnection.setRequestMethod(requestMethod);
             mReadyState = HttpRequest.STATE_OPENED;

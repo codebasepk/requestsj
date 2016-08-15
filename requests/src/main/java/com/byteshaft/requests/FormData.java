@@ -17,6 +17,7 @@
  */
 package com.byteshaft.requests;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class FormData {
@@ -27,8 +28,9 @@ public class FormData {
     private static final String BOUNDARY_LINE = "---------------------------";
     private static final String SEMICOLON = "; ";
     private ArrayList<MultiPartData> mData;
+    private int mContentLength = FINISH_LINE.length();
 
-    public static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis() % 1000;
+    public static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;
     public static String FINISH_LINE = String.format(
@@ -90,10 +92,25 @@ public class FormData {
     public void append(int contentType, String fieldName, String value) {
         MultiPartData data = new MultiPartData();
         data.setContentType(contentType);
-        data.setPreContentData(getFieldPreContentWriteString(contentType, fieldName, value));
+        String preContentString = getFieldPreContentWriteString(contentType, fieldName, value);
+        mContentLength += preContentString.length();
+        data.setPreContentData(preContentString);
+        String postContentString = getFieldPostContentWriteString(contentType);
+        if (contentType == TYPE_CONTENT_TEXT) {
+            mContentLength += value.length();
+            mContentLength += postContentString.length();
+        } else if (contentType == TYPE_CONTENT_FILE) {
+            File file = new File(value);
+            mContentLength += file.length();
+            mContentLength += postContentString.length();
+        }
         data.setContent(value);
-        data.setPostContentData(getFieldPostContentWriteString(contentType));
+        data.setPostContentData(postContentString);
         mData.add(data);
+    }
+
+    public int getContentLength() {
+        return mContentLength;
     }
 
     public ArrayList<MultiPartData> getData() {

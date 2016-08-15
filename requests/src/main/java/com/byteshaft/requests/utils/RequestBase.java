@@ -37,21 +37,24 @@ public class RequestBase {
     protected HttpURLConnection mConnection;
     protected OutputStream mOutputStream;
     protected String mResponseText = "";
-    protected int mReadyState;
+    protected short mReadyState = HttpRequest.STATE_UNSET;
+    protected String mUrl;
+    protected HttpRequest mRequest;
+
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mStateChangeListeners;
     private ArrayList<HttpRequest.FileUploadProgressListener> mProgressListeners;
     private ListenersUtil mListenersUtil;
 
     protected RequestBase(Context context) {
-        mReadyState = HttpRequest.STATE_UNSET;
         mStateChangeListeners = new ArrayList<>();
         mProgressListeners = new ArrayList<>();
         mListenersUtil = ListenersUtil.getInstance(context);
     }
 
     protected void openConnection(String requestMethod, String url) {
+        mUrl = url;
         try {
-            URL urlObject = new URL(url);
+            URL urlObject = new URL(mUrl);
             mConnection = (HttpURLConnection) urlObject.openConnection();
             mConnection.setRequestMethod(requestMethod);
             mReadyState = HttpRequest.STATE_OPENED;
@@ -64,8 +67,19 @@ public class RequestBase {
     protected void readResponse() {
         mReadyState = HttpRequest.STATE_LOADING;
         mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
+        InputStream inputStream;
         try {
-            InputStream inputStream = mConnection.getInputStream();
+            inputStream = mConnection.getInputStream();
+        } catch (IOException ignore) {
+            inputStream = mConnection.getErrorStream();
+        }
+        readFromInputStream(inputStream);
+        mReadyState = HttpRequest.STATE_DONE;
+        mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
+    }
+
+    private void readFromInputStream(InputStream inputStream) {
+        try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder output = new StringBuilder();
             String line;
@@ -73,11 +87,9 @@ public class RequestBase {
                 output.append(line).append('\n');
             }
             mResponseText = output.toString();
-        } catch (IOException ignore) {
-
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        mReadyState = HttpRequest.STATE_DONE;
-        mListenersUtil.emitOnReadyStateChange(mStateChangeListeners, mConnection, mReadyState);
     }
 
     protected void sendRequestData(String body, boolean closeOnDone) {
@@ -107,7 +119,7 @@ public class RequestBase {
         try {
             mOutputStream.flush();
             FileInputStream inputStream = new FileInputStream(uploadFile);
-            final byte[] buffer = new byte[4096];
+            final byte[] buffer = new byte[512];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 mOutputStream.write(buffer, 0, bytesRead);

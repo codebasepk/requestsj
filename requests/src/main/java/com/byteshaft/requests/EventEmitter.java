@@ -15,30 +15,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.byteshaft.requests.utils;
+package com.byteshaft.requests;
 
 import android.content.Context;
 import android.os.Handler;
-
-import com.byteshaft.requests.HttpRequest;
 
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
-public class ListenersUtil {
+class EventEmitter {
 
     private Handler mMainHandler;
-    private static ListenersUtil sListenersUtil;
+    private static EventEmitter sListenersUtil;
 
-    public static ListenersUtil getInstance(Context context) {
+    public static EventEmitter getInstance(Context context) {
         if (sListenersUtil == null) {
-            sListenersUtil = new ListenersUtil(context);
+            sListenersUtil = new EventEmitter(context);
         }
         return sListenersUtil;
     }
 
-    private ListenersUtil(Context context) {
+    private EventEmitter(Context context) {
         mMainHandler = new Handler(context.getMainLooper());
     }
 
@@ -58,16 +56,27 @@ public class ListenersUtil {
     }
 
     protected void emitOnFileUploadProgress(
-            ArrayList<HttpRequest.FileUploadProgressListener> listeners,
+            ArrayList<HttpRequest.OnFileUploadProgressListener> listeners,
             final File file,
             final long uploaded,
             final long total
     ) {
-        for (final HttpRequest.FileUploadProgressListener listener : listeners) {
+        for (final HttpRequest.OnFileUploadProgressListener listener : listeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     listener.onFileUploadProgress(file, uploaded, total);
+                }
+            });
+        }
+    }
+
+    protected void emitOnError(ArrayList<HttpRequest.OnErrorListener> listeners) {
+        for (final HttpRequest.OnErrorListener listener : listeners) {
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onError();
                 }
             });
         }

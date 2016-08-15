@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 public class MainActivity extends AppCompatActivity implements
-        HttpRequest.FileUploadProgressListener, HttpRequest.OnReadyStateChangeListener {
+        HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener {
 
     private final String TEST_URL = "http://localhost:8000/api/user/driver-registration";
     private HttpRequest mRequest;

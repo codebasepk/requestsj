@@ -128,7 +128,7 @@ class BaseHttpRequest {
             readFromInputStream(inputStream);
             assignResponseCodeAndMessage();
             mReadyState = HttpRequest.STATE_DONE;
-            mEventEmitter.emitOnError(mOnErrorListeners);
+            mEventEmitter.emitOnError(mOnErrorListeners, mRequest);
         }
     }
 
@@ -190,9 +190,8 @@ class BaseHttpRequest {
                 uploaded += bytesRead;
                 mEventEmitter.emitOnFileUploadProgress(
                         mOnFileUploadProgressListeners,
+                        mRequest,
                         uploadFile,
-                        mCurrentFileNumber,
-                        mFilesCount,
                         uploaded,
                         total
                 );

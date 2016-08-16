@@ -13,7 +13,7 @@ ext {
     siteUrl = 'https://github.com/byteShaft/requests'
     gitUrl = 'https://github.com/byteShaft/requests.git'
 
-    libraryVersion = '0.2.3'
+    libraryVersion = '0.3.0'
 
     developerId = 'byteShaft'
     developerName = 'byteShaft Services'
@@ -32,7 +32,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
-        versionName "0.2.3"
+        versionName "0.3.0"
     }
     buildTypes {
         release {

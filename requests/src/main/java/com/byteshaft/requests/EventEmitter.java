@@ -71,12 +71,15 @@ class EventEmitter {
         }
     }
 
-    protected void emitOnError(ArrayList<HttpRequest.OnErrorListener> listeners) {
+    protected void emitOnError(
+            ArrayList<HttpRequest.OnErrorListener> listeners,
+            final HttpRequest request
+    ) {
         for (final HttpRequest.OnErrorListener listener : listeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError();
+                    listener.onError(request);
                 }
             });
         }

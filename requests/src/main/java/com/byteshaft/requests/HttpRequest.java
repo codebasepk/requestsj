@@ -36,7 +36,7 @@ public class HttpRequest extends BaseHttpRequest {
     }
 
     public interface OnErrorListener {
-        void onError();
+        void onError(HttpRequest request);
     }
 
     public interface OnFileUploadProgressListener {

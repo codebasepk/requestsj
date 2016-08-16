@@ -128,7 +128,7 @@ class BaseHttpRequest {
             readFromInputStream(inputStream);
             assignResponseCodeAndMessage();
             mReadyState = HttpRequest.STATE_DONE;
-            mEventEmitter.emitOnError(mOnErrorListeners);
+            mEventEmitter.emitOnError(mOnErrorListeners, mRequest);
         }
     }
 

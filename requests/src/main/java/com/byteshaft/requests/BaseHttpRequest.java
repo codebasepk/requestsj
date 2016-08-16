@@ -190,9 +190,8 @@ class BaseHttpRequest {
                 uploaded += bytesRead;
                 mEventEmitter.emitOnFileUploadProgress(
                         mOnFileUploadProgressListeners,
+                        mRequest,
                         uploadFile,
-                        mCurrentFileNumber,
-                        mFilesCount,
                         uploaded,
                         total
                 );

@@ -3,14 +3,17 @@ package com.byteshaft.requests.sample;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.byteshaft.requests.FormData;
 import com.byteshaft.requests.HttpRequest;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 
 public class MainActivity extends AppCompatActivity implements
-        HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener {
+        HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
+        HttpRequest.OnErrorListener {
 
     private final String TEST_URL = "http://localhost:8000/api/user/driver-registration";
 
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements
         HttpRequest request = new HttpRequest(getApplicationContext());
         request.setOnReadyStateChangeListener(this);
         request.setOnFileUploadProgressListener(this);
+        request.setOnErrorListener(this);
         request.open("POST", TEST_URL);
         request.send(getData());
     }
@@ -41,20 +45,30 @@ public class MainActivity extends AppCompatActivity implements
 
     private String getPath() {
         String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        return dirPath + "/ok2.png";
+        return dirPath + "/ok.png";
     }
 
     @Override
     public void onReadyStateChange(HttpRequest request, int readyState) {
-        if (readyState == HttpRequest.STATE_DONE) {
-            System.out.println(request.getResponseText());
-            System.out.println(request.getStatus());
-            System.out.println(request.getStatusText());
+        switch (readyState) {
+            case HttpRequest.STATE_DONE:
+                switch (request.getStatus()) {
+                    case HttpURLConnection.HTTP_CREATED:
+                        Toast.makeText(
+                                getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
+                }
         }
     }
 
     @Override
     public void onFileUploadProgress(HttpRequest request, File file, long loaded, long total) {
+        if (request.getCurrentFileNumber() == request.getTotalFiles() && loaded == total) {
+            Toast.makeText(getApplicationContext(), "Upload Done", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onError() {
 
     }
 }

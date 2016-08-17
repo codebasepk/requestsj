@@ -5,12 +5,12 @@ XmlHttpRequest for Android
 ```java
 HttpRequest request = new HttpRequest(context);
 request.setOnReadyStateChangeListener(new HttpRequest.OnReadyStateChangeListener() {
-      @Override
-      public void onReadyStateChange(HttpRequest request, int readyState) {
-          switch (readyState) {
-              case HttpRequest.STATE_DONE:
-                  switch (request.getStatus()) {
-                     case HttpURLConnection.HTTP_OK:
+    @Override
+    public void onReadyStateChange(HttpRequest request, int readyState) {
+        switch (readyState) {
+            case HttpRequest.STATE_DONE:
+                switch (request.getStatus()) {
+                    case HttpURLConnection.HTTP_OK:
                         // Request successful
                         break;
                     case HttpURLConnection.HTTP_BAD_REQUEST:
@@ -18,7 +18,7 @@ request.setOnReadyStateChangeListener(new HttpRequest.OnReadyStateChangeListener
                         request.getResponseText();
                         request.getStatusText();
                         break;
-            }
+                }
         }
     }
 });

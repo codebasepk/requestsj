@@ -13,11 +13,11 @@ request.setOnReadyStateChangeListener(new HttpRequest.OnReadyStateChangeListener
                      case HttpURLConnection.HTTP_OK:
                         // Request successful
                         break;
-              case HttpURLConnection.HTTP_BAD_REQUEST:
-                  // Something was wrong
-                  request.getResponseText();
-                  request.getStatusText();
-                  break;
+                    case HttpURLConnection.HTTP_BAD_REQUEST:
+                        // Something was wrong
+                        request.getResponseText();
+                        request.getStatusText();
+                        break;
             }
         }
     }

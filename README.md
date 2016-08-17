@@ -1,6 +1,13 @@
 # requests
 XmlHttpRequest for Android
 
+# Getting started
+the build binary is hosted on jcenter so you could just add the line:
+
+```
+compile 'com.byteshaft.requests:requests:0.3.0'
+```
+
 # Usage
 ```java
 HttpRequest request = new HttpRequest(context);

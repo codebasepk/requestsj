@@ -25,63 +25,63 @@ import java.util.ArrayList;
 
 class EventCentral {
 
+    private ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
+    private ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
+    private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
     private Handler mMainHandler;
-    private static EventCentral sListenersUtil;
 
-    static EventCentral getInstance(Context context) {
-        if (sListenersUtil == null) {
-            sListenersUtil = new EventCentral(context);
-        }
-        return sListenersUtil;
-    }
+    short mReadyState = HttpRequest.STATE_UNSET;
+    HttpRequest mRequest;
 
-    private EventCentral(Context context) {
+    EventCentral(Context context) {
+        mOnErrorListeners = new ArrayList<>();
+        mOnFileUploadProgressListeners = new ArrayList<>();
+        mOnReadyStateChangeListeners = new ArrayList<>();
         mMainHandler = new Handler(context.getMainLooper());
     }
 
-    void emitOnReadyStateChange(
-            ArrayList<HttpRequest.OnReadyStateChangeListener> listeners,
-            final HttpRequest request,
-            final int readyState
-    ) {
-        for (final HttpRequest.OnReadyStateChangeListener listener : listeners) {
+    void emitOnReadyStateChange(final int readyState) {
+        for (final HttpRequest.OnReadyStateChangeListener listener : mOnReadyStateChangeListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onReadyStateChange(request, readyState);
+                    listener.onReadyStateChange(mRequest, readyState);
                 }
             });
         }
     }
 
-    void emitOnFileUploadProgress(
-            ArrayList<HttpRequest.OnFileUploadProgressListener> listeners,
-            final HttpRequest request,
-            final File file,
-            final long loaded,
-            final long total
-    ) {
-        for (final HttpRequest.OnFileUploadProgressListener listener : listeners) {
+    void emitOnFileUploadProgress(final File file, final long loaded, final long total) {
+        for (final HttpRequest.OnFileUploadProgressListener listener : mOnFileUploadProgressListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onFileUploadProgress(request, file, loaded, total);
+                    listener.onFileUploadProgress(mRequest, file, loaded, total);
                 }
             });
         }
     }
 
-    void emitOnError(
-            ArrayList<HttpRequest.OnErrorListener> listeners,
-            final HttpRequest request
-    ) {
-        for (final HttpRequest.OnErrorListener listener : listeners) {
+    void emitOnError() {
+        for (final HttpRequest.OnErrorListener listener : mOnErrorListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(request);
+                    listener.onError(mRequest);
                 }
             });
         }
+    }
+
+    void addOnErrorListener(HttpRequest.OnErrorListener listener) {
+        mOnErrorListeners.add(listener);
+    }
+
+    void addOnProgressUpdateListener(HttpRequest.OnFileUploadProgressListener listener) {
+        mOnFileUploadProgressListeners.add(listener);
+    }
+
+    void addOnReadyStateListener(HttpRequest.OnReadyStateChangeListener listener) {
+        mOnReadyStateChangeListeners.add(listener);
     }
 }

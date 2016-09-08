@@ -18,6 +18,7 @@
 package com.byteshaft.requests;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,12 +27,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import javax.net.ssl.SSLHandshakeException;
+
 class BaseHttpRequest extends EventCentral {
 
+    private static final String TAG = "BaseHttpRequest";
     private OutputStream mOutputStream;
 
     final String CONTENT_TYPE_JSON = "application/json";
@@ -49,7 +56,7 @@ class BaseHttpRequest extends EventCentral {
         super(context);
     }
 
-    void openConnection(String requestMethod, String url) {
+    void setupConnection(String requestMethod, String url) {
         mUrl = url;
         try {
             URL urlObject = new URL(mUrl);
@@ -57,42 +64,72 @@ class BaseHttpRequest extends EventCentral {
             mConnection.setRequestMethod(requestMethod);
             emitOnReadyStateChange(HttpRequest.STATE_OPENED);
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof MalformedURLException) {
+                emitOnError(HttpRequest.ERROR_INVALID_URL);
+            } else if (e instanceof ProtocolException) {
+                emitOnError(HttpRequest.ERROR_INVALID_REQUEST_METHOD);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN);
+            }
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
-    void sendRequest(String contentType, final String data) {
-        mConnection.setRequestProperty("Content-Type", contentType);
+    private boolean establishConnection() {
+        try {
+            mConnection.connect();
+            emitOnReadyStateChange(HttpRequest.STATE_OPENED);
+            return true;
+        } catch (IOException e) {
+            if (e instanceof ConnectException) {
+                if (e.getMessage().contains("ECONNREFUSED")) {
+                    emitOnError(HttpRequest.ERROR_CONNECTION_REFUSED);
+                }
+            } else if (e instanceof SSLHandshakeException) {
+                emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID);
+            }
+            Log.e(TAG, e.getMessage(), e);
+            return false;
+        }
+    }
+
+    void sendRequest(final String contentType, final String data) {
+        if (hasError()) return;
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (!establishConnection()) return;
+                mConnection.setRequestProperty("Content-Type", contentType);
                 if (data != null) {
-                    sendRequestData(data, true);
+                    if (!sendRequestData(data, true)) return;
                 }
                 readResponse();
             }
         }).start();
     }
 
-    void sendRequest(String contentType, final FormData data) {
-        mConnection.setRequestProperty("Content-Type", contentType);
-        mConnection.setFixedLengthStreamingMode(data.getContentLength());
-        mFilesCount = data.getFilesCount();
+    void sendRequest(final String contentType, final FormData data) {
+        if (hasError()) return;
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (!establishConnection()) return;
+                mConnection.setRequestProperty("Content-Type", contentType);
+                mConnection.setFixedLengthStreamingMode(data.getContentLength());
+                mFilesCount = data.getFilesCount();
                 ArrayList<FormData.MultiPartData> requestItems = data.getData();
                 for (FormData.MultiPartData item : requestItems) {
-                    sendRequestData(item.getPreContentData(), false);
+                    if (!sendRequestData(item.getPreContentData(), false)) break;
                     if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
-                        sendRequestData(item.getContent(), false);
+                        if (!sendRequestData(item.getContent(), false)) break;
                     } else {
                         mCurrentFileNumber += 1;
-                        writeContent(item.getContent());
+                        if (!writeContent(item.getContent())) break;
                     }
-                    sendRequestData(item.getPostContentData(), false);
+                    if (!sendRequestData(item.getPostContentData(), false)) break;
                 }
-                sendRequestData(FormData.FINISH_LINE, true);
+                if (hasError()) return;
+                if (!sendRequestData(FormData.FINISH_LINE, true)) return;
                 readResponse();
             }
         }).start();
@@ -100,26 +137,24 @@ class BaseHttpRequest extends EventCentral {
 
     private void readResponse() {
         emitOnReadyStateChange(HttpRequest.STATE_LOADING);
-        InputStream inputStream;
         try {
-            inputStream = mConnection.getInputStream();
-            readFromInputStream(inputStream);
-            assignResponseCodeAndMessage();
-            emitOnReadyStateChange(HttpRequest.STATE_DONE);
+            readFromInputStream(mConnection.getInputStream());
         } catch (IOException ignore) {
-            inputStream = mConnection.getErrorStream();
-            readFromInputStream(inputStream);
-            assignResponseCodeAndMessage();
-            emitOnReadyStateChange(HttpRequest.STATE_DONE);
+            readFromInputStream(mConnection.getErrorStream());
         }
+        if (!assignResponseCodeAndMessage()) return;
+        emitOnReadyStateChange(HttpRequest.STATE_DONE);
     }
 
-    private void assignResponseCodeAndMessage() {
+    private boolean assignResponseCodeAndMessage() {
         try {
             mStatus = (short) mConnection.getResponseCode();
             mStatusText = mConnection.getResponseMessage();
-        } catch (IOException ignore) {
-
+            return true;
+        } catch (IOException e) {
+            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
     }
 
@@ -132,12 +167,13 @@ class BaseHttpRequest extends EventCentral {
                 output.append(line).append('\n');
             }
             mResponseText = output.toString();
-        } catch (IOException ignore) {
-
+        } catch (IOException e) {
+            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
-    private void sendRequestData(String body, boolean closeOnDone) {
+    private boolean sendRequestData(String body, boolean closeOnDone) {
         try {
             byte[] outputInBytes = body.getBytes();
             if (mOutputStream == null) {
@@ -147,20 +183,24 @@ class BaseHttpRequest extends EventCentral {
             mOutputStream.flush();
             if (closeOnDone) {
                 mOutputStream.close();
+                emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
             }
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (closeOnDone) {
-            emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
+            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
     }
 
-    private void writeContent(String uploadFilePath) {
+    private boolean writeContent(String uploadFilePath) {
         File uploadFile = new File(uploadFilePath);
         long total = uploadFile.length();
         long uploaded = 0;
         try {
+            if (mOutputStream == null) {
+                mOutputStream = mConnection.getOutputStream();
+            }
             mOutputStream.flush();
             FileInputStream inputStream = new FileInputStream(uploadFile);
             final byte[] buffer = new byte[512];
@@ -171,8 +211,15 @@ class BaseHttpRequest extends EventCentral {
                 uploaded += bytesRead;
                 emitOnFileUploadProgress(uploadFile, uploaded, total);
             }
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
+    }
+
+    private boolean hasError() {
+        return mError > HttpRequest.ERROR_NONE;
     }
 }

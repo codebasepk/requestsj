@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements
         HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
         HttpRequest.OnErrorListener {
 
-    private final String TEST_URL = "http://localhost:8000/api/user/driver-registration";
+    private final String TEST_URL = "https://localhost:8000/api/user/driver-registration";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onError(HttpRequest request) {
+    public void onError(HttpRequest request, short error) {
 
     }
 }

@@ -30,6 +30,7 @@ class EventCentral {
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
     private Handler mMainHandler;
 
+    short mError = HttpRequest.ERROR_NONE;
     short mReadyState = HttpRequest.STATE_UNSET;
     HttpRequest mRequest;
 
@@ -40,7 +41,8 @@ class EventCentral {
         mMainHandler = new Handler(context.getMainLooper());
     }
 
-    void emitOnReadyStateChange(final int readyState) {
+    void emitOnReadyStateChange(final short readyState) {
+        mReadyState = readyState;
         for (final HttpRequest.OnReadyStateChangeListener listener : mOnReadyStateChangeListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
@@ -62,12 +64,13 @@ class EventCentral {
         }
     }
 
-    void emitOnError() {
+    void emitOnError(short error) {
+        mError = error;
         for (final HttpRequest.OnErrorListener listener : mOnErrorListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(mRequest);
+                    listener.onError(mRequest, mError);
                 }
             });
         }

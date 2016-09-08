@@ -32,18 +32,18 @@ import java.util.ArrayList;
 
 class BaseHttpRequest {
 
-    protected HttpURLConnection mConnection;
-    protected int mFilesCount = 0;
-    protected int mCurrentFileNumber = 0;
-    protected OutputStream mOutputStream;
-    protected short mStatus = 0;
-    protected String mStatusText;
-    protected String mResponseText;
-    protected short mReadyState = HttpRequest.STATE_UNSET;
-    protected String mUrl;
-    protected HttpRequest mRequest;
-    protected final String CONTENT_TYPE_JSON = "application/json";
-    protected final String CONTENT_TYPE_FORM = String.format(
+    HttpURLConnection mConnection;
+    int mFilesCount = 0;
+    int mCurrentFileNumber = 0;
+    private OutputStream mOutputStream;
+    short mStatus = 0;
+    String mStatusText;
+    String mResponseText;
+    short mReadyState = HttpRequest.STATE_UNSET;
+    String mUrl;
+    HttpRequest mRequest;
+    final String CONTENT_TYPE_JSON = "application/json";
+    final String CONTENT_TYPE_FORM = String.format(
             "multipart/form-data; boundary=%s", FormData.BOUNDARY
     );
 
@@ -52,7 +52,7 @@ class BaseHttpRequest {
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
     private EventEmitter mEventEmitter;
 
-    protected BaseHttpRequest(Context context) {
+    BaseHttpRequest(Context context) {
         mOnErrorListeners = new ArrayList<>();
         mOnFileUploadProgressListeners = new ArrayList<>();
         mOnReadyStateChangeListeners = new ArrayList<>();
@@ -63,7 +63,7 @@ class BaseHttpRequest {
         mEventEmitter.emitOnReadyStateChange(mOnReadyStateChangeListeners, mRequest, mReadyState);
     }
 
-    protected void openConnection(String requestMethod, String url) {
+    void openConnection(String requestMethod, String url) {
         mUrl = url;
         try {
             URL urlObject = new URL(mUrl);
@@ -76,7 +76,7 @@ class BaseHttpRequest {
         }
     }
 
-    protected void sendRequest(String contentType, final String data) {
+    void sendRequest(String contentType, final String data) {
         mConnection.setRequestProperty("Content-Type", contentType);
         new Thread(new Runnable() {
             @Override
@@ -89,7 +89,7 @@ class BaseHttpRequest {
         }).start();
     }
 
-    protected void sendRequest(String contentType, final FormData data) {
+    void sendRequest(String contentType, final FormData data) {
         mConnection.setRequestProperty("Content-Type", contentType);
         mConnection.setFixedLengthStreamingMode(data.getContentLength());
         mFilesCount = data.getFilesCount();
@@ -113,7 +113,7 @@ class BaseHttpRequest {
         }).start();
     }
 
-    protected void readResponse() {
+    private void readResponse() {
         mReadyState = HttpRequest.STATE_LOADING;
         emitOnReadyStateChange();
         InputStream inputStream;
@@ -155,7 +155,7 @@ class BaseHttpRequest {
         }
     }
 
-    protected void sendRequestData(String body, boolean closeOnDone) {
+    private void sendRequestData(String body, boolean closeOnDone) {
         try {
             byte[] outputInBytes = body.getBytes();
             if (mOutputStream == null) {
@@ -175,7 +175,7 @@ class BaseHttpRequest {
         }
     }
 
-    protected void writeContent(String uploadFilePath) {
+    private void writeContent(String uploadFilePath) {
         File uploadFile = new File(uploadFilePath);
         long total = uploadFile.length();
         long uploaded = 0;
@@ -201,17 +201,17 @@ class BaseHttpRequest {
         }
     }
 
-    protected void addOnErrorListener(HttpRequest.OnErrorListener listener) {
+    void addOnErrorListener(HttpRequest.OnErrorListener listener) {
         mOnErrorListeners.add(listener);
     }
 
-    protected void addOnProgressUpdateListener(
+    void addOnProgressUpdateListener(
             HttpRequest.OnFileUploadProgressListener listener
     ) {
         mOnFileUploadProgressListeners.add(listener);
     }
 
-    protected void addOnReadyStateListener(HttpRequest.OnReadyStateChangeListener listener) {
+    void addOnReadyStateListener(HttpRequest.OnReadyStateChangeListener listener) {
         mOnReadyStateChangeListeners.add(listener);
     }
 }

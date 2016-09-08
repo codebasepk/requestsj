@@ -31,10 +31,8 @@ public class FormData {
     private int mContentLength = FINISH_LINE.length();
     private int mFilesCount = 0;
 
-    protected static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
-    protected static String FINISH_LINE = String.format(
-            "%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF
-    );
+    static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
+    static String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
 
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;
@@ -105,19 +103,19 @@ public class FormData {
         mData.add(data);
     }
 
-    public int getContentLength() {
+    int getContentLength() {
         return mContentLength;
     }
 
-    public int getFilesCount() {
+    int getFilesCount() {
         return mFilesCount;
     }
 
-    public ArrayList<MultiPartData> getData() {
+    ArrayList<MultiPartData> getData() {
         return mData;
     }
 
-    public class MultiPartData {
+    class MultiPartData {
         private int mContentType;
         private String mPreContentData;
         private String mContent;
@@ -131,7 +129,7 @@ public class FormData {
             mContentType = contentType;
         }
 
-        public int getContentType() {
+        int getContentType() {
             return mContentType;
         }
 
@@ -139,7 +137,7 @@ public class FormData {
             mPreContentData = preContentData;
         }
 
-        public String getPreContentData() {
+        String getPreContentData() {
             return mPreContentData;
         }
 
@@ -147,7 +145,7 @@ public class FormData {
             mPostContentData = postContentData;
         }
 
-        public String getPostContentData() {
+        String getPostContentData() {
             return mPostContentData;
         }
 
@@ -155,7 +153,7 @@ public class FormData {
             mContent = content;
         }
 
-        public String getContent() {
+        String getContent() {
             return mContent;
         }
     }

@@ -28,7 +28,7 @@ class EventEmitter {
     private Handler mMainHandler;
     private static EventEmitter sListenersUtil;
 
-    public static EventEmitter getInstance(Context context) {
+    static EventEmitter getInstance(Context context) {
         if (sListenersUtil == null) {
             sListenersUtil = new EventEmitter(context);
         }
@@ -39,7 +39,7 @@ class EventEmitter {
         mMainHandler = new Handler(context.getMainLooper());
     }
 
-    protected void emitOnReadyStateChange(
+    void emitOnReadyStateChange(
             ArrayList<HttpRequest.OnReadyStateChangeListener> listeners,
             final HttpRequest request,
             final int readyState
@@ -54,7 +54,7 @@ class EventEmitter {
         }
     }
 
-    protected void emitOnFileUploadProgress(
+    void emitOnFileUploadProgress(
             ArrayList<HttpRequest.OnFileUploadProgressListener> listeners,
             final HttpRequest request,
             final File file,
@@ -71,7 +71,7 @@ class EventEmitter {
         }
     }
 
-    protected void emitOnError(
+    void emitOnError(
             ArrayList<HttpRequest.OnErrorListener> listeners,
             final HttpRequest request
     ) {

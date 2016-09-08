@@ -38,6 +38,8 @@ public class HttpRequest extends BaseHttpRequest {
     public static final short ERROR_SSL_CERTIFICATE_INVALID = 4;
     public static final short ERROR_FILE_DOES_NOT_EXIST = 5;
     public static final short ERROR_FILE_READ_PERMISSION_DENIED = 6;
+    public static final short ERROR_NETWORK_UNREACHABLE = 7;
+    public static final short ERROR_CONNECTION_TIMED_OUT = 8;
 
     public HttpRequest(Context context) {
         super(context);
@@ -77,6 +79,10 @@ public class HttpRequest extends BaseHttpRequest {
             throw new RuntimeException("open() must be called first.");
         }
         mConnection.setRequestProperty(key, value);
+    }
+
+    public void setConnectTimeout(int timeout) {
+        mConnectTimeout = timeout;
     }
 
     public void send(String data) {

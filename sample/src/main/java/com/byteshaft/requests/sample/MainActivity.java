@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements
         HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
         HttpRequest.OnErrorListener {
 
-    private final String TEST_URL = "https://localhost:8000/api/user/driver-registration";
+    private final String TEST_URL = "http://139.59.228.194/:8000/api/user/driver-registration";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements
         request.setOnFileUploadProgressListener(this);
         request.setOnErrorListener(this);
         request.open("POST", TEST_URL);
+        request.setConnectTimeout(15000);
         request.send(getData());
     }
 

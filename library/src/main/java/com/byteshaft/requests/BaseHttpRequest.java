@@ -32,6 +32,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -47,6 +48,7 @@ class BaseHttpRequest extends EventCentral {
             "multipart/form-data; boundary=%s", FormData.BOUNDARY);
     int mFilesCount;
     int mCurrentFileNumber;
+    int mConnectTimeout = 15000;
     short mStatus;
     HttpURLConnection mConnection;
     String mStatusText;
@@ -78,6 +80,7 @@ class BaseHttpRequest extends EventCentral {
 
     private boolean establishConnection() {
         try {
+            mConnection.setConnectTimeout(mConnectTimeout);
             mConnection.connect();
             emitOnReadyStateChange(HttpRequest.STATE_OPENED);
             return true;
@@ -85,10 +88,19 @@ class BaseHttpRequest extends EventCentral {
             if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
                     emitOnError(HttpRequest.ERROR_CONNECTION_REFUSED, e);
+                } else if (e.getMessage().contains("ENETUNREACH")) {
+                    emitOnError(HttpRequest.ERROR_NETWORK_UNREACHABLE, e);
+                } else if (e.getMessage().contains("ETIMEDOUT")) {
+                    emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+                } else {
+                    emitOnError(HttpRequest.ERROR_UNKNOWN, e);
                 }
             } else if (e instanceof SSLHandshakeException) {
                 emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
-            } else {
+            } else if (e instanceof SocketTimeoutException) {
+                emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+            }
+            else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);

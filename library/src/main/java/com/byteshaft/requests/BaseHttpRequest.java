@@ -65,11 +65,11 @@ class BaseHttpRequest extends EventCentral {
             emitOnReadyStateChange(HttpRequest.STATE_OPENED);
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
-                emitOnError(HttpRequest.ERROR_INVALID_URL);
+                emitOnError(HttpRequest.ERROR_INVALID_URL, e);
             } else if (e instanceof ProtocolException) {
-                emitOnError(HttpRequest.ERROR_INVALID_REQUEST_METHOD);
+                emitOnError(HttpRequest.ERROR_INVALID_REQUEST_METHOD, e);
             } else {
-                emitOnError(HttpRequest.ERROR_UNKNOWN);
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);
         }
@@ -83,10 +83,10 @@ class BaseHttpRequest extends EventCentral {
         } catch (IOException e) {
             if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
-                    emitOnError(HttpRequest.ERROR_CONNECTION_REFUSED);
+                    emitOnError(HttpRequest.ERROR_CONNECTION_REFUSED, e);
                 }
             } else if (e instanceof SSLHandshakeException) {
-                emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID);
+                emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
             }
             Log.e(TAG, e.getMessage(), e);
             return false;
@@ -152,7 +152,7 @@ class BaseHttpRequest extends EventCentral {
             mStatusText = mConnection.getResponseMessage();
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             Log.e(TAG, e.getMessage(), e);
             return false;
         }
@@ -168,7 +168,7 @@ class BaseHttpRequest extends EventCentral {
             }
             mResponseText = output.toString();
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             Log.e(TAG, e.getMessage(), e);
         }
     }
@@ -187,7 +187,7 @@ class BaseHttpRequest extends EventCentral {
             }
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             Log.e(TAG, e.getMessage(), e);
             return false;
         }
@@ -213,7 +213,7 @@ class BaseHttpRequest extends EventCentral {
             }
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN);
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             Log.e(TAG, e.getMessage(), e);
             return false;
         }

@@ -23,6 +23,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -87,6 +88,8 @@ class BaseHttpRequest extends EventCentral {
                 }
             } else if (e instanceof SSLHandshakeException) {
                 emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);
             return false;
@@ -95,11 +98,11 @@ class BaseHttpRequest extends EventCentral {
 
     void sendRequest(final String contentType, final String data) {
         if (hasError()) return;
+        mConnection.setRequestProperty("Content-Type", contentType);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!establishConnection()) return;
-                mConnection.setRequestProperty("Content-Type", contentType);
                 if (data != null) {
                     if (!sendRequestData(data, true)) return;
                 }
@@ -110,13 +113,13 @@ class BaseHttpRequest extends EventCentral {
 
     void sendRequest(final String contentType, final FormData data) {
         if (hasError()) return;
+        mConnection.setRequestProperty("Content-Type", contentType);
+        mConnection.setFixedLengthStreamingMode(data.getContentLength());
+        mFilesCount = data.getFilesCount();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!establishConnection()) return;
-                mConnection.setRequestProperty("Content-Type", contentType);
-                mConnection.setFixedLengthStreamingMode(data.getContentLength());
-                mFilesCount = data.getFilesCount();
                 ArrayList<FormData.MultiPartData> requestItems = data.getData();
                 for (FormData.MultiPartData item : requestItems) {
                     if (!sendRequestData(item.getPreContentData(), false)) break;
@@ -213,7 +216,15 @@ class BaseHttpRequest extends EventCentral {
             }
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            if (e instanceof FileNotFoundException) {
+                if (e.getMessage().contains("ENOENT")) {
+                    emitOnError(HttpRequest.ERROR_FILE_DOES_NOT_EXIST, e);
+                } else if (e.getMessage().contains("EACCES")) {
+                    emitOnError(HttpRequest.ERROR_FILE_READ_PERMISSION_DENIED, e);
+                }
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
             Log.e(TAG, e.getMessage(), e);
             return false;
         }

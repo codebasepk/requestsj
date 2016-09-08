@@ -19,12 +19,14 @@ package com.byteshaft.requests;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
 
 class EventCentral {
 
+    private static final String TAG = "EventCentral";
     private ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
     private ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
@@ -74,6 +76,8 @@ class EventCentral {
                 }
             });
         }
+
+        Log.d(TAG, String.format("Emit Error: %s", mError));
     }
 
     void addOnErrorListener(HttpRequest.OnErrorListener listener) {

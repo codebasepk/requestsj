@@ -66,13 +66,13 @@ class EventCentral {
         }
     }
 
-    void emitOnError(short error, final Exception excepton) {
+    void emitOnError(short error, final Exception exception) {
         mError = error;
         for (final HttpRequest.OnErrorListener listener : mOnErrorListeners) {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(mRequest, mError, excepton);
+                    listener.onError(mRequest, mError, exception);
                 }
             });
         }

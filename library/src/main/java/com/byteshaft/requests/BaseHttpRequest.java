@@ -50,13 +50,13 @@ class BaseHttpRequest {
     private ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
     private ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
     private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
-    private EventEmitter mEventEmitter;
+    private EventCentral mEventEmitter;
 
     BaseHttpRequest(Context context) {
         mOnErrorListeners = new ArrayList<>();
         mOnFileUploadProgressListeners = new ArrayList<>();
         mOnReadyStateChangeListeners = new ArrayList<>();
-        mEventEmitter = EventEmitter.getInstance(context);
+        mEventEmitter = EventCentral.getInstance(context);
     }
 
     private void emitOnReadyStateChange() {

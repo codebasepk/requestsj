@@ -23,19 +23,19 @@ import android.os.Handler;
 import java.io.File;
 import java.util.ArrayList;
 
-class EventEmitter {
+class EventCentral {
 
     private Handler mMainHandler;
-    private static EventEmitter sListenersUtil;
+    private static EventCentral sListenersUtil;
 
-    static EventEmitter getInstance(Context context) {
+    static EventCentral getInstance(Context context) {
         if (sListenersUtil == null) {
-            sListenersUtil = new EventEmitter(context);
+            sListenersUtil = new EventCentral(context);
         }
         return sListenersUtil;
     }
 
-    private EventEmitter(Context context) {
+    private EventCentral(Context context) {
         mMainHandler = new Handler(context.getMainLooper());
     }
 

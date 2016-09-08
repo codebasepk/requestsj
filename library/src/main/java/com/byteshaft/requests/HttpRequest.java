@@ -81,7 +81,7 @@ public class HttpRequest extends BaseHttpRequest {
         mConnection.setRequestProperty(key, value);
     }
 
-    public void setConnectTimeout(int timeout) {
+    public void setTimeout(int timeout) {
         mConnectTimeout = timeout;
     }
 

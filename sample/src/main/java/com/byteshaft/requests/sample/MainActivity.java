@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements
         request.setOnFileUploadProgressListener(this);
         request.setOnErrorListener(this);
         request.open("POST", TEST_URL);
-        request.setConnectTimeout(15000);
+        request.setTimeout(15000);
         request.send(getData());
     }
 

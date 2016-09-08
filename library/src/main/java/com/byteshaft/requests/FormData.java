@@ -29,7 +29,7 @@ public class FormData {
     private static final String SEMICOLON = "; ";
     private ArrayList<MultiPartData> mData;
     private int mContentLength = FINISH_LINE.length();
-    private int mFilesCount = 0;
+    private int mFilesCount;
 
     static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
     static String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);

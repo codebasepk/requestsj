@@ -33,10 +33,10 @@ import java.util.ArrayList;
 class BaseHttpRequest extends EventCentral {
 
     HttpURLConnection mConnection;
-    int mFilesCount = 0;
-    int mCurrentFileNumber = 0;
+    int mFilesCount;
+    int mCurrentFileNumber;
     private OutputStream mOutputStream;
-    short mStatus = 0;
+    short mStatus;
     String mStatusText;
     String mResponseText;
     String mUrl;

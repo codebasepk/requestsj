@@ -221,6 +221,8 @@ class BaseHttpRequest extends EventCentral {
                     emitOnError(HttpRequest.ERROR_FILE_DOES_NOT_EXIST, e);
                 } else if (e.getMessage().contains("EACCES")) {
                     emitOnError(HttpRequest.ERROR_FILE_READ_PERMISSION_DENIED, e);
+                } else {
+                    emitOnError(HttpRequest.ERROR_UNKNOWN, e);
                 }
             } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);

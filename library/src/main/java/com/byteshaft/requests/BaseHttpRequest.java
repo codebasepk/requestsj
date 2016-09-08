@@ -18,126 +18,158 @@
 package com.byteshaft.requests;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 
-class BaseHttpRequest {
+import javax.net.ssl.SSLHandshakeException;
 
-    protected HttpURLConnection mConnection;
-    protected int mFilesCount = 0;
-    protected int mCurrentFileNumber = 0;
-    protected OutputStream mOutputStream;
-    protected short mStatus = 0;
-    protected String mStatusText;
-    protected String mResponseText;
-    protected short mReadyState = HttpRequest.STATE_UNSET;
-    protected String mUrl;
-    protected HttpRequest mRequest;
-    protected final String CONTENT_TYPE_JSON = "application/json";
-    protected final String CONTENT_TYPE_FORM = String.format(
-            "multipart/form-data; boundary=%s", FormData.BOUNDARY
-    );
+class BaseHttpRequest extends EventCentral {
 
-    private ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
-    private ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
-    private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
-    private EventEmitter mEventEmitter;
+    private static final String TAG = "BaseHttpRequest";
+    private OutputStream mOutputStream;
 
-    protected BaseHttpRequest(Context context) {
-        mOnErrorListeners = new ArrayList<>();
-        mOnFileUploadProgressListeners = new ArrayList<>();
-        mOnReadyStateChangeListeners = new ArrayList<>();
-        mEventEmitter = EventEmitter.getInstance(context);
+    final String CONTENT_TYPE_JSON = "application/json";
+    final String CONTENT_TYPE_FORM = String.format(
+            "multipart/form-data; boundary=%s", FormData.BOUNDARY);
+    int mFilesCount;
+    int mCurrentFileNumber;
+    int mConnectTimeout = 15000;
+    short mStatus;
+    HttpURLConnection mConnection;
+    String mStatusText;
+    String mResponseText;
+    String mUrl;
+
+    BaseHttpRequest(Context context) {
+        super(context);
     }
 
-    private void emitOnReadyStateChange() {
-        mEventEmitter.emitOnReadyStateChange(mOnReadyStateChangeListeners, mRequest, mReadyState);
-    }
-
-    protected void openConnection(String requestMethod, String url) {
+    void setupConnection(String requestMethod, String url) {
         mUrl = url;
         try {
             URL urlObject = new URL(mUrl);
             mConnection = (HttpURLConnection) urlObject.openConnection();
             mConnection.setRequestMethod(requestMethod);
-            mReadyState = HttpRequest.STATE_OPENED;
-            emitOnReadyStateChange();
+            emitOnReadyStateChange(HttpRequest.STATE_OPENED);
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof MalformedURLException) {
+                emitOnError(HttpRequest.ERROR_INVALID_URL, e);
+            } else if (e instanceof ProtocolException) {
+                emitOnError(HttpRequest.ERROR_INVALID_REQUEST_METHOD, e);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
-    protected void sendRequest(String contentType, final String data) {
+    private boolean establishConnection() {
+        try {
+            mConnection.setConnectTimeout(mConnectTimeout);
+            mConnection.connect();
+            emitOnReadyStateChange(HttpRequest.STATE_OPENED);
+            return true;
+        } catch (IOException e) {
+            if (e instanceof ConnectException) {
+                if (e.getMessage().contains("ECONNREFUSED")) {
+                    emitOnError(HttpRequest.ERROR_CONNECTION_REFUSED, e);
+                } else if (e.getMessage().contains("ENETUNREACH")) {
+                    emitOnError(HttpRequest.ERROR_NETWORK_UNREACHABLE, e);
+                } else if (e.getMessage().contains("ETIMEDOUT")) {
+                    emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+                } else {
+                    emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+                }
+            } else if (e instanceof SSLHandshakeException) {
+                emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
+            } else if (e instanceof SocketTimeoutException) {
+                emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+            }
+            else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
+            Log.e(TAG, e.getMessage(), e);
+            return false;
+        }
+    }
+
+    void sendRequest(final String contentType, final String data) {
+        if (hasError()) return;
         mConnection.setRequestProperty("Content-Type", contentType);
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (!establishConnection()) return;
                 if (data != null) {
-                    sendRequestData(data, true);
+                    if (!sendRequestData(data, true)) return;
                 }
                 readResponse();
             }
         }).start();
     }
 
-    protected void sendRequest(String contentType, final FormData data) {
+    void sendRequest(final String contentType, final FormData data) {
+        if (hasError()) return;
         mConnection.setRequestProperty("Content-Type", contentType);
         mConnection.setFixedLengthStreamingMode(data.getContentLength());
         mFilesCount = data.getFilesCount();
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (!establishConnection()) return;
                 ArrayList<FormData.MultiPartData> requestItems = data.getData();
                 for (FormData.MultiPartData item : requestItems) {
-                    sendRequestData(item.getPreContentData(), false);
+                    if (!sendRequestData(item.getPreContentData(), false)) break;
                     if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
-                        sendRequestData(item.getContent(), false);
+                        if (!sendRequestData(item.getContent(), false)) break;
                     } else {
                         mCurrentFileNumber += 1;
-                        writeContent(item.getContent());
+                        if (!writeContent(item.getContent())) break;
                     }
-                    sendRequestData(item.getPostContentData(), false);
+                    if (!sendRequestData(item.getPostContentData(), false)) break;
                 }
-                sendRequestData(FormData.FINISH_LINE, true);
+                if (hasError()) return;
+                if (!sendRequestData(FormData.FINISH_LINE, true)) return;
                 readResponse();
             }
         }).start();
     }
 
-    protected void readResponse() {
-        mReadyState = HttpRequest.STATE_LOADING;
-        emitOnReadyStateChange();
-        InputStream inputStream;
+    private void readResponse() {
+        emitOnReadyStateChange(HttpRequest.STATE_LOADING);
         try {
-            inputStream = mConnection.getInputStream();
-            readFromInputStream(inputStream);
-            assignResponseCodeAndMessage();
-            mReadyState = HttpRequest.STATE_DONE;
-            emitOnReadyStateChange();
+            readFromInputStream(mConnection.getInputStream());
         } catch (IOException ignore) {
-            inputStream = mConnection.getErrorStream();
-            readFromInputStream(inputStream);
-            assignResponseCodeAndMessage();
-            mReadyState = HttpRequest.STATE_DONE;
-            mEventEmitter.emitOnError(mOnErrorListeners, mRequest);
+            readFromInputStream(mConnection.getErrorStream());
         }
+        if (!assignResponseCodeAndMessage()) return;
+        emitOnReadyStateChange(HttpRequest.STATE_DONE);
     }
 
-    private void assignResponseCodeAndMessage() {
+    private boolean assignResponseCodeAndMessage() {
         try {
             mStatus = (short) mConnection.getResponseCode();
             mStatusText = mConnection.getResponseMessage();
-        } catch (IOException ignore) {
-
+            return true;
+        } catch (IOException e) {
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
     }
 
@@ -150,12 +182,13 @@ class BaseHttpRequest {
                 output.append(line).append('\n');
             }
             mResponseText = output.toString();
-        } catch (IOException ignore) {
-
+        } catch (IOException e) {
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
-    protected void sendRequestData(String body, boolean closeOnDone) {
+    private boolean sendRequestData(String body, boolean closeOnDone) {
         try {
             byte[] outputInBytes = body.getBytes();
             if (mOutputStream == null) {
@@ -165,21 +198,24 @@ class BaseHttpRequest {
             mOutputStream.flush();
             if (closeOnDone) {
                 mOutputStream.close();
+                emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
             }
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (closeOnDone) {
-            mReadyState = HttpRequest.STATE_HEADERS_RECEIVED;
-            emitOnReadyStateChange();
+            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
     }
 
-    protected void writeContent(String uploadFilePath) {
+    private boolean writeContent(String uploadFilePath) {
         File uploadFile = new File(uploadFilePath);
         long total = uploadFile.length();
         long uploaded = 0;
         try {
+            if (mOutputStream == null) {
+                mOutputStream = mConnection.getOutputStream();
+            }
             mOutputStream.flush();
             FileInputStream inputStream = new FileInputStream(uploadFile);
             final byte[] buffer = new byte[512];
@@ -188,30 +224,27 @@ class BaseHttpRequest {
                 mOutputStream.write(buffer, 0, bytesRead);
                 mOutputStream.flush();
                 uploaded += bytesRead;
-                mEventEmitter.emitOnFileUploadProgress(
-                        mOnFileUploadProgressListeners,
-                        mRequest,
-                        uploadFile,
-                        uploaded,
-                        total
-                );
+                emitOnFileUploadProgress(uploadFile, uploaded, total);
             }
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof FileNotFoundException) {
+                if (e.getMessage().contains("ENOENT")) {
+                    emitOnError(HttpRequest.ERROR_FILE_DOES_NOT_EXIST, e);
+                } else if (e.getMessage().contains("EACCES")) {
+                    emitOnError(HttpRequest.ERROR_FILE_READ_PERMISSION_DENIED, e);
+                } else {
+                    emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+                }
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
+            Log.e(TAG, e.getMessage(), e);
+            return false;
         }
     }
 
-    protected void addOnErrorListener(HttpRequest.OnErrorListener listener) {
-        mOnErrorListeners.add(listener);
-    }
-
-    protected void addOnProgressUpdateListener(
-            HttpRequest.OnFileUploadProgressListener listener
-    ) {
-        mOnFileUploadProgressListeners.add(listener);
-    }
-
-    protected void addOnReadyStateListener(HttpRequest.OnReadyStateChangeListener listener) {
-        mOnReadyStateChangeListeners.add(listener);
+    private boolean hasError() {
+        return mError > HttpRequest.ERROR_NONE;
     }
 }

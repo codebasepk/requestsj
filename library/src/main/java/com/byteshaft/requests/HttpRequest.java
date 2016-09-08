@@ -30,13 +30,24 @@ public class HttpRequest extends BaseHttpRequest {
     public static final short STATE_LOADING = 3;
     public static final short STATE_DONE = 4;
 
+    public static final short ERROR_NONE = -1;
+    public static final short ERROR_UNKNOWN = 0;
+    public static final short ERROR_INVALID_URL = 1;
+    public static final short ERROR_INVALID_REQUEST_METHOD = 2;
+    public static final short ERROR_CONNECTION_REFUSED = 3;
+    public static final short ERROR_SSL_CERTIFICATE_INVALID = 4;
+    public static final short ERROR_FILE_DOES_NOT_EXIST = 5;
+    public static final short ERROR_FILE_READ_PERMISSION_DENIED = 6;
+    public static final short ERROR_NETWORK_UNREACHABLE = 7;
+    public static final short ERROR_CONNECTION_TIMED_OUT = 8;
+
     public HttpRequest(Context context) {
         super(context);
         mRequest = this;
     }
 
     public interface OnErrorListener {
-        void onError(HttpRequest request);
+        void onError(HttpRequest request, short error, Exception exception);
     }
 
     public interface OnFileUploadProgressListener {
@@ -60,7 +71,7 @@ public class HttpRequest extends BaseHttpRequest {
     }
 
     public void open(String requestMethod, String url) {
-        openConnection(requestMethod, url);
+        setupConnection(requestMethod, url);
     }
 
     public void setRequestHeader(String key, String value) {
@@ -68,6 +79,10 @@ public class HttpRequest extends BaseHttpRequest {
             throw new RuntimeException("open() must be called first.");
         }
         mConnection.setRequestProperty(key, value);
+    }
+
+    public void setTimeout(int timeout) {
+        mConnectTimeout = timeout;
     }
 
     public void send(String data) {
@@ -116,5 +131,9 @@ public class HttpRequest extends BaseHttpRequest {
 
     public int getCurrentFileNumber() {
         return mCurrentFileNumber;
+    }
+
+    public short getError() {
+        return mError;
     }
 }

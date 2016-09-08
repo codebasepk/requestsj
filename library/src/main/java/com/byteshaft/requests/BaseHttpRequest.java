@@ -32,18 +32,18 @@ import java.util.ArrayList;
 
 class BaseHttpRequest extends EventCentral {
 
-    HttpURLConnection mConnection;
+    private OutputStream mOutputStream;
+
+    final String CONTENT_TYPE_JSON = "application/json";
+    final String CONTENT_TYPE_FORM = String.format(
+            "multipart/form-data; boundary=%s", FormData.BOUNDARY);
     int mFilesCount;
     int mCurrentFileNumber;
-    private OutputStream mOutputStream;
     short mStatus;
+    HttpURLConnection mConnection;
     String mStatusText;
     String mResponseText;
     String mUrl;
-    final String CONTENT_TYPE_JSON = "application/json";
-    final String CONTENT_TYPE_FORM = String.format(
-            "multipart/form-data; boundary=%s", FormData.BOUNDARY
-    );
 
     BaseHttpRequest(Context context) {
         super(context);

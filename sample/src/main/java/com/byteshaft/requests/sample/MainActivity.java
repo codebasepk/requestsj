@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements
         HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
         HttpRequest.OnErrorListener {
 
-    private final String TEST_URL = "http://139.59.228.194/:8000/api/user/driver-registration";
+    private final String TEST_URL = "http://139.59.228.194:8000/api/user/driver-registration";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements
                     case HttpURLConnection.HTTP_CREATED:
                         Toast.makeText(
                                 getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
+                        break;
                 }
         }
     }

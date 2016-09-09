@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.byteshaft.requests;
 
 import android.content.Context;
@@ -27,10 +28,10 @@ import java.util.ArrayList;
 class EventCentral {
 
     private static final String TAG = "EventCentral";
-    private ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
-    private ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
-    private ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
-    private Handler mMainHandler;
+    private final ArrayList<HttpRequest.OnErrorListener> mOnErrorListeners;
+    private final ArrayList<HttpRequest.OnFileUploadProgressListener> mOnFileUploadProgressListeners;
+    private final ArrayList<HttpRequest.OnReadyStateChangeListener> mOnReadyStateChangeListeners;
+    private final Handler mMainHandler;
 
     short mError = HttpRequest.ERROR_NONE;
     short mReadyState = HttpRequest.STATE_UNSET;

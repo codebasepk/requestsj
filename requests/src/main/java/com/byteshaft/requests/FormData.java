@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.byteshaft.requests;
 
 import java.io.File;
@@ -27,12 +28,12 @@ public class FormData {
     private static final String DASHES = "--";
     private static final String BOUNDARY_LINE = "---------------------------";
     private static final String SEMICOLON = "; ";
-    private ArrayList<MultiPartData> mData;
+    private final ArrayList<MultiPartData> mData;
     private int mContentLength = FINISH_LINE.length();
     private int mFilesCount;
 
     static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
-    static String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
+    static final String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
 
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;

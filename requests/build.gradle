@@ -8,12 +8,12 @@ ext {
     libraryName = 'Requests'
     artifact = 'requests'
 
-    libraryDescription = 'Java implementation of XmlHttpRequest for Android'
+    libraryDescription = 'XmlHttpRequest for Android'
 
     siteUrl = 'https://github.com/byteShaft/requests'
     gitUrl = 'https://github.com/byteShaft/requests.git'
 
-    libraryVersion = '0.3.0'
+    libraryVersion = '0.5.0'
 
     developerId = 'byteShaft'
     developerName = 'byteShaft Services'
@@ -32,7 +32,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
-        versionName "0.3.0"
+        versionName "0.5.0"
     }
     buildTypes {
         release {
@@ -43,5 +43,5 @@ android {
     return true
 }
 
-//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'

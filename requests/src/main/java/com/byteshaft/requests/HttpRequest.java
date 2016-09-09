@@ -40,6 +40,7 @@ public class HttpRequest extends BaseHttpRequest {
     public static final short ERROR_FILE_READ_PERMISSION_DENIED = 6;
     public static final short ERROR_NETWORK_UNREACHABLE = 7;
     public static final short ERROR_CONNECTION_TIMED_OUT = 8;
+    public static final short ERROR_LOST_CONNECTION = 9;
 
     public HttpRequest(Context context) {
         super(context);

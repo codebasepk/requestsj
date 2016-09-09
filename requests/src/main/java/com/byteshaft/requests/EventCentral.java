@@ -53,6 +53,7 @@ class EventCentral {
                 }
             });
         }
+        Log.d(TAG, String.format("Emit readyState: %s", mReadyState));
     }
 
     void emitOnFileUploadProgress(final File file, final long loaded, final long total) {

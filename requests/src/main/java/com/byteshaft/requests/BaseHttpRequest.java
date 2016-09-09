@@ -32,6 +32,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -65,7 +66,6 @@ class BaseHttpRequest extends EventCentral {
             URL urlObject = new URL(mUrl);
             mConnection = (HttpURLConnection) urlObject.openConnection();
             mConnection.setRequestMethod(requestMethod);
-            emitOnReadyStateChange(HttpRequest.STATE_OPENED);
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
                 emitOnError(HttpRequest.ERROR_INVALID_URL, e);
@@ -99,8 +99,7 @@ class BaseHttpRequest extends EventCentral {
                 emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
             } else if (e instanceof SocketTimeoutException) {
                 emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
-            }
-            else {
+            } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);
@@ -151,19 +150,21 @@ class BaseHttpRequest extends EventCentral {
     }
 
     private void readResponse() {
+        if (!assignResponseCodeAndMessage()) return;
+        emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
         emitOnReadyStateChange(HttpRequest.STATE_LOADING);
         try {
             readFromInputStream(mConnection.getInputStream());
         } catch (IOException ignore) {
             readFromInputStream(mConnection.getErrorStream());
         }
-        if (!assignResponseCodeAndMessage()) return;
         emitOnReadyStateChange(HttpRequest.STATE_DONE);
     }
 
     private boolean assignResponseCodeAndMessage() {
         try {
             mStatus = (short) mConnection.getResponseCode();
+            Log.d(TAG, String.format("Request status: %s", mStatus));
             mStatusText = mConnection.getResponseMessage();
             return true;
         } catch (IOException e) {
@@ -198,11 +199,14 @@ class BaseHttpRequest extends EventCentral {
             mOutputStream.flush();
             if (closeOnDone) {
                 mOutputStream.close();
-                emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
             }
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            if (e instanceof SocketException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
             Log.e(TAG, e.getMessage(), e);
             return false;
         }
@@ -216,7 +220,6 @@ class BaseHttpRequest extends EventCentral {
             if (mOutputStream == null) {
                 mOutputStream = mConnection.getOutputStream();
             }
-            mOutputStream.flush();
             FileInputStream inputStream = new FileInputStream(uploadFile);
             final byte[] buffer = new byte[512];
             int bytesRead;
@@ -236,6 +239,8 @@ class BaseHttpRequest extends EventCentral {
                 } else {
                     emitOnError(HttpRequest.ERROR_UNKNOWN, e);
                 }
+            } else if (e instanceof SocketException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
             } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }

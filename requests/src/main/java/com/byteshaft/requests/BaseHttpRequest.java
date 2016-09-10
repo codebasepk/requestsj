@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.byteshaft.requests;
 
 import android.content.Context;
@@ -81,6 +82,7 @@ class BaseHttpRequest extends EventCentral {
     private boolean establishConnection() {
         try {
             mConnection.setConnectTimeout(mConnectTimeout);
+            mConnection.setReadTimeout(mConnectTimeout);
             mConnection.connect();
             emitOnReadyStateChange(HttpRequest.STATE_OPENED);
             return true;
@@ -110,6 +112,9 @@ class BaseHttpRequest extends EventCentral {
     void sendRequest(final String contentType, final String data) {
         if (hasError()) return;
         mConnection.setRequestProperty("Content-Type", contentType);
+        if (data != null) {
+            mConnection.setFixedLengthStreamingMode(data.getBytes().length);
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -151,7 +156,6 @@ class BaseHttpRequest extends EventCentral {
 
     private void readResponse() {
         if (!assignResponseCodeAndMessage()) return;
-        emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
         emitOnReadyStateChange(HttpRequest.STATE_LOADING);
         try {
             readFromInputStream(mConnection.getInputStream());
@@ -163,12 +167,18 @@ class BaseHttpRequest extends EventCentral {
 
     private boolean assignResponseCodeAndMessage() {
         try {
+            Log.v(TAG, "Getting response headers");
             mStatus = (short) mConnection.getResponseCode();
             Log.d(TAG, String.format("Request status: %s", mStatus));
             mStatusText = mConnection.getResponseMessage();
+            emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
             return true;
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            if (e instanceof SocketTimeoutException) {
+                emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
             Log.e(TAG, e.getMessage(), e);
             return false;
         }
@@ -184,7 +194,11 @@ class BaseHttpRequest extends EventCentral {
             }
             mResponseText = output.toString();
         } catch (IOException e) {
-            emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            if (e instanceof SocketTimeoutException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+            } else {
+                emitOnError(HttpRequest.ERROR_UNKNOWN, e);
+            }
             Log.e(TAG, e.getMessage(), e);
         }
     }
@@ -193,16 +207,22 @@ class BaseHttpRequest extends EventCentral {
         try {
             byte[] outputInBytes = body.getBytes();
             if (mOutputStream == null) {
+                Log.v(TAG, "Getting OutputStream");
                 mOutputStream = mConnection.getOutputStream();
+                Log.v(TAG, "Got OutputStream");
             }
             mOutputStream.write(outputInBytes);
             mOutputStream.flush();
             if (closeOnDone) {
+                Log.v(TAG, "Closing OutputStream");
                 mOutputStream.close();
+                Log.v(TAG, "Closed OutputStream");
             }
             return true;
         } catch (IOException e) {
             if (e instanceof SocketException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+            } else if (e instanceof SocketTimeoutException) {
                 emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
             } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
@@ -241,7 +261,9 @@ class BaseHttpRequest extends EventCentral {
                 }
             } else if (e instanceof SocketException) {
                 emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
-            } else {
+            } else if (e instanceof SocketTimeoutException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+            }else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);

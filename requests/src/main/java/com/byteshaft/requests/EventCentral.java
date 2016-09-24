@@ -74,11 +74,10 @@ class EventCentral {
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(mRequest, mError, exception);
+                    listener.onError(mRequest, mReadyState, mError, exception);
                 }
             });
         }
-
         Log.d(TAG, String.format("Emit Error: %s", mError));
     }
 

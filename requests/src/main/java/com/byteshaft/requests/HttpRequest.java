@@ -49,7 +49,7 @@ public class HttpRequest extends BaseHttpRequest {
     }
 
     public interface OnErrorListener {
-        void onError(HttpRequest request, short error, Exception exception);
+        void onError(HttpRequest request, int readyState, short error, Exception exception);
     }
 
     public interface OnFileUploadProgressListener {

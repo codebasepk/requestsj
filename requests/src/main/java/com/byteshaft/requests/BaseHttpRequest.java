@@ -99,6 +99,8 @@ class BaseHttpRequest extends EventCentral {
                 }
             } else if (e instanceof SSLHandshakeException) {
                 emitOnError(HttpRequest.ERROR_SSL_CERTIFICATE_INVALID, e);
+            } else if (e instanceof SocketException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
             } else if (e instanceof SocketTimeoutException) {
                 emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
             } else {
@@ -174,7 +176,9 @@ class BaseHttpRequest extends EventCentral {
             emitOnReadyStateChange(HttpRequest.STATE_HEADERS_RECEIVED);
             return true;
         } catch (IOException e) {
-            if (e instanceof SocketTimeoutException) {
+            if (e instanceof SocketException) {
+                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+            } else if (e instanceof SocketTimeoutException) {
                 emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
             } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
@@ -223,7 +227,7 @@ class BaseHttpRequest extends EventCentral {
             if (e instanceof SocketException) {
                 emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
             } else if (e instanceof SocketTimeoutException) {
-                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
+                emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
             } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
@@ -262,8 +266,8 @@ class BaseHttpRequest extends EventCentral {
             } else if (e instanceof SocketException) {
                 emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
             } else if (e instanceof SocketTimeoutException) {
-                emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
-            }else {
+                emitOnError(HttpRequest.ERROR_CONNECTION_TIMED_OUT, e);
+            } else {
                 emitOnError(HttpRequest.ERROR_UNKNOWN, e);
             }
             Log.e(TAG, e.getMessage(), e);

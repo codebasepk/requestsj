@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onError(HttpRequest request, short error, Exception e) {
+    public void onError(HttpRequest request, int readyState, short error, Exception exception) {
 
     }
 }

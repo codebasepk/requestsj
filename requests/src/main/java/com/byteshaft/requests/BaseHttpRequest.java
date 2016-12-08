@@ -156,7 +156,19 @@ class BaseHttpRequest extends EventCentral {
         }).start();
     }
 
+    private void closeAndResetOutputStream() {
+        if (mOutputStream != null) {
+            try {
+                mOutputStream.flush();
+                mOutputStream.close();
+                mOutputStream = null;
+            } catch (IOException ignore) {
+            }
+        }
+    }
+
     private void readResponse() {
+        closeAndResetOutputStream();
         if (!assignResponseCodeAndMessage()) return;
         emitOnReadyStateChange(HttpRequest.STATE_LOADING);
         try {
@@ -197,6 +209,7 @@ class BaseHttpRequest extends EventCentral {
                 output.append(line).append('\n');
             }
             mResponseText = output.toString();
+            mConnection.disconnect();
         } catch (IOException e) {
             if (e instanceof SocketTimeoutException) {
                 emitOnError(HttpRequest.ERROR_LOST_CONNECTION, e);
@@ -220,6 +233,7 @@ class BaseHttpRequest extends EventCentral {
             if (closeOnDone) {
                 Log.v(TAG, "Closing OutputStream");
                 mOutputStream.close();
+                mOutputStream = null;
                 Log.v(TAG, "Closed OutputStream");
             }
             return true;

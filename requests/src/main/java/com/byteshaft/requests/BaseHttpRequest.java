@@ -222,7 +222,7 @@ class BaseHttpRequest extends EventCentral {
 
     private boolean sendRequestData(String body, boolean closeOnDone) {
         try {
-            byte[] outputInBytes = body.getBytes();
+            byte[] outputInBytes = body.getBytes("UTF-8");
             if (mOutputStream == null) {
                 Log.v(TAG, "Getting OutputStream");
                 mOutputStream = mConnection.getOutputStream();

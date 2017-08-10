@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements
         HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
         HttpRequest.OnErrorListener {
 
-    private final String TEST_URL = "http://139.59.228.194:8000/api/user/driver-registration";
+    private final String TEST_URL = "http://192.168.1.5:8000/api/me";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +25,11 @@ public class MainActivity extends AppCompatActivity implements
         request.setOnReadyStateChangeListener(this);
         request.setOnFileUploadProgressListener(this);
         request.setOnErrorListener(this);
-        request.open("POST", TEST_URL);
-        request.send(getData());
+        request.open("PUT", TEST_URL);
+        request.setRequestHeader("Authorization", "Token fd2864175d949c7a01a8d186d751658fb5288581");
+        FormData data = new FormData();
+        data.append(FormData.TYPE_CONTENT_TEXT, "full_name", " īñ4ëì");
+        request.send(data);
     }
 
     private FormData getData() {

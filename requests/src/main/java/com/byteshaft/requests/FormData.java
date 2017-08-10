@@ -91,7 +91,7 @@ public class FormData {
         mContentLength += preContentString.length();
         data.setPreContentData(preContentString);
         if (contentType == TYPE_CONTENT_TEXT) {
-            mContentLength += value.length();
+            mContentLength += value.getBytes().length;
         } else {
             File file = new File(value);
             mContentLength += file.length();

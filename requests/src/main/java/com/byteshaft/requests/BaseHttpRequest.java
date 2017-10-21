@@ -117,15 +117,12 @@ class BaseHttpRequest extends EventCentral {
         if (data != null) {
             mConnection.setFixedLengthStreamingMode(data.getBytes().length);
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (!establishConnection()) return;
-                if (data != null) {
-                    if (!sendRequestData(data, true)) return;
-                }
-                readResponse();
+        new Thread(() -> {
+            if (!establishConnection()) return;
+            if (data != null) {
+                if (!sendRequestData(data, true)) return;
             }
+            readResponse();
         }).start();
     }
 
@@ -134,25 +131,22 @@ class BaseHttpRequest extends EventCentral {
         mConnection.setRequestProperty("Content-Type", contentType);
         mConnection.setFixedLengthStreamingMode(data.getContentLength());
         mFilesCount = data.getFilesCount();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (!establishConnection()) return;
-                ArrayList<FormData.MultiPartData> requestItems = data.getData();
-                for (FormData.MultiPartData item : requestItems) {
-                    if (!sendRequestData(item.getPreContentData(), false)) break;
-                    if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
-                        if (!sendRequestData(item.getContent(), false)) break;
-                    } else {
-                        mCurrentFileNumber += 1;
-                        if (!writeContent(item.getContent())) break;
-                    }
-                    if (!sendRequestData(item.getPostContentData(), false)) break;
+        new Thread(() -> {
+            if (!establishConnection()) return;
+            ArrayList<FormData.MultiPartData> requestItems = data.getData();
+            for (FormData.MultiPartData item : requestItems) {
+                if (!sendRequestData(item.getPreContentData(), false)) break;
+                if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
+                    if (!sendRequestData(item.getContent(), false)) break;
+                } else {
+                    mCurrentFileNumber += 1;
+                    if (!writeContent(item.getContent())) break;
                 }
-                if (hasError()) return;
-                if (!sendRequestData(FormData.FINISH_LINE, true)) return;
-                readResponse();
+                if (!sendRequestData(item.getPostContentData(), false)) break;
             }
+            if (hasError()) return;
+            if (!sendRequestData(FormData.FINISH_LINE, true)) return;
+            readResponse();
         }).start();
     }
 
@@ -163,6 +157,7 @@ class BaseHttpRequest extends EventCentral {
                 mOutputStream.close();
                 mOutputStream = null;
             } catch (IOException ignore) {
+                mOutputStream = null;
             }
         }
     }

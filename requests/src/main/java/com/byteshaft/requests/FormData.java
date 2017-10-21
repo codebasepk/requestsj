@@ -83,7 +83,7 @@ public class FormData {
 
     public void append(int contentType, String fieldName, String value) {
         if (contentType != TYPE_CONTENT_FILE && contentType != TYPE_CONTENT_TEXT) {
-            throw new UnsupportedOperationException("Invalid content type.");
+            throw new IllegalArgumentException("Invalid content type.");
         }
         MultiPartData data = new MultiPartData();
         data.setContentType(contentType);
@@ -121,10 +121,6 @@ public class FormData {
         private String mPreContentData;
         private String mContent;
         private String mPostContentData;
-
-        private MultiPartData() {
-
-        }
 
         private void setContentType(int contentType) {
             mContentType = contentType;

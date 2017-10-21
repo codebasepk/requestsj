@@ -7,13 +7,15 @@ import android.widget.Toast;
 
 import com.byteshaft.requests.FormData;
 import com.byteshaft.requests.HttpRequest;
+import com.byteshaft.requests.HttpRequest.OnErrorListener;
+import com.byteshaft.requests.HttpRequest.OnFileUploadProgressListener;
+import com.byteshaft.requests.HttpRequest.OnReadyStateChangeListener;
 
 import java.io.File;
 import java.net.HttpURLConnection;
 
-public class MainActivity extends AppCompatActivity implements
-        HttpRequest.OnFileUploadProgressListener, HttpRequest.OnReadyStateChangeListener,
-        HttpRequest.OnErrorListener {
+public class MainActivity extends AppCompatActivity implements OnFileUploadProgressListener,
+        OnReadyStateChangeListener, OnErrorListener {
 
     private final String TEST_URL = "http://192.168.1.5:8000/api/me";
 

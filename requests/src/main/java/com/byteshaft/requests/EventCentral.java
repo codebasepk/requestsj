@@ -44,39 +44,24 @@ class EventCentral {
         mMainHandler = new Handler(context.getMainLooper());
     }
 
-    void emitOnReadyStateChange(final short readyState) {
+    void emitOnReadyStateChange(short readyState) {
         mReadyState = readyState;
-        for (final HttpRequest.OnReadyStateChangeListener listener : mOnReadyStateChangeListeners) {
-            mMainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onReadyStateChange(mRequest, readyState);
-                }
-            });
+        for (HttpRequest.OnReadyStateChangeListener listener : mOnReadyStateChangeListeners) {
+            mMainHandler.post(() -> listener.onReadyStateChange(mRequest, readyState));
         }
         Log.d(TAG, String.format("Emit readyState: %s", mReadyState));
     }
 
-    void emitOnFileUploadProgress(final File file, final long loaded, final long total) {
-        for (final HttpRequest.OnFileUploadProgressListener listener : mOnFileUploadProgressListeners) {
-            mMainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onFileUploadProgress(mRequest, file, loaded, total);
-                }
-            });
+    void emitOnFileUploadProgress(File file, long loaded, long total) {
+        for (HttpRequest.OnFileUploadProgressListener listener: mOnFileUploadProgressListeners) {
+            mMainHandler.post(() -> listener.onFileUploadProgress(mRequest, file, loaded, total));
         }
     }
 
-    void emitOnError(short error, final Exception exception) {
+    void emitOnError(short error, Exception exception) {
         mError = error;
         for (final HttpRequest.OnErrorListener listener : mOnErrorListeners) {
-            mMainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onError(mRequest, mReadyState, mError, exception);
-                }
-            });
+            mMainHandler.post(() -> listener.onError(mRequest, mReadyState, mError, exception));
         }
         Log.d(TAG, String.format("Emit Error: %s", mError));
     }

@@ -5,7 +5,7 @@ XmlHttpRequest for Android
 the build binary is hosted on jcenter so you could just add the line:
 
 ```
-compile 'com.byteshaft.requests:requests:0.5.2'
+implementation 'com.byteshaft.requests:requests:0.5.2'
 ```
 
 # Usage

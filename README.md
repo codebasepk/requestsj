@@ -30,7 +30,7 @@ request.setOnReadyStateChangeListener(new HttpRequest.OnReadyStateChangeListener
     }
 });
 request.open("POST", URL);
-requst.send(JsonString);
+request.send(JsonString);
 ```
 
 Note: this document is still WIP.

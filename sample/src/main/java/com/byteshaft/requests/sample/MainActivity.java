@@ -2,37 +2,34 @@ package com.byteshaft.requests.sample;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.byteshaft.requests.FormData;
 import com.byteshaft.requests.HttpRequest;
-import com.byteshaft.requests.HttpRequest.OnErrorListener;
-import com.byteshaft.requests.HttpRequest.OnFileUploadProgressListener;
-import com.byteshaft.requests.HttpRequest.OnReadyStateChangeListener;
 
-import java.io.File;
-import java.net.HttpURLConnection;
+public class MainActivity extends AppCompatActivity {
 
-public class MainActivity extends AppCompatActivity implements OnFileUploadProgressListener,
-        OnReadyStateChangeListener, OnErrorListener {
-
-    private final String TEST_URL = "http://192.168.1.5:8000/api/me";
+    private final String TEST_URL = "https://httpbin.org/post";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        HttpRequest request = new HttpRequest(getApplicationContext());
-        request.setOnReadyStateChangeListener(this);
-        request.setOnFileUploadProgressListener(this);
-        request.setOnErrorListener(this);
-        request.open("PUT", TEST_URL);
+        HttpRequest request = new HttpRequest();
+        request.setOnResponseListener((response, status) -> {
+            System.out.println(response.getResponseText());
+        });
+        request.setOnFileUploadProgressListener((file, loaded, total) -> {
+
+        });
+        request.setOnErrorListener((response, error, exception) -> {
+            System.out.println("WE have the error " + response.toString());
+        });
         request.setRequestHeader("Authorization", "Token fd2864175d949c7a01a8d186d751658fb5288581");
         FormData data = new FormData();
         data.append(FormData.TYPE_CONTENT_TEXT, "full_name", " īñ4ëì");
-        request.send(data);
+        request.send("POST", TEST_URL, data);
     }
 
     private FormData getData() {
@@ -52,30 +49,5 @@ public class MainActivity extends AppCompatActivity implements OnFileUploadProgr
     private String getPath() {
         String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
         return dirPath + "/ok.png";
-    }
-
-    @Override
-    public void onReadyStateChange(HttpRequest request, int readyState) {
-        switch (readyState) {
-            case HttpRequest.STATE_DONE:
-                switch (request.getStatus()) {
-                    case HttpURLConnection.HTTP_CREATED:
-                        Toast.makeText(
-                                getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-        }
-    }
-
-    @Override
-    public void onFileUploadProgress(HttpRequest request, File file, long loaded, long total) {
-        if (request.getCurrentFileNumber() == request.getTotalFiles() && loaded == total) {
-            Toast.makeText(getApplicationContext(), "Upload Done", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onError(HttpRequest request, int readyState, short error, Exception exception) {
-
     }
 }

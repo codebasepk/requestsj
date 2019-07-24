@@ -2,8 +2,9 @@ package com.byteshaft.requests.sample;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.byteshaft.requests.FormData;
 import com.byteshaft.requests.HttpRequest;

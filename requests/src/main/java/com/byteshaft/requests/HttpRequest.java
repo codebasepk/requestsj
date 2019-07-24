@@ -140,7 +140,9 @@ public class HttpRequest {
             mConnection.setConnectTimeout(mConnectTimeout);
             mConnection.setReadTimeout(mConnectTimeout);
             mConnection.connect();
-            mOutputStream = new BufferedOutputStream(mConnection.getOutputStream());
+            if (!mConnection.getRequestMethod().equals("GET")) {
+                mOutputStream = new BufferedOutputStream(mConnection.getOutputStream());
+            }
             return true;
         } catch (IOException e) {
             if (e instanceof ConnectException) {

@@ -6,7 +6,7 @@ import android.os.Environment;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.byteshaft.requests.FormData;
-import com.byteshaft.requests.HttpRequest;
+import com.byteshaft.requests.HTTPRequest;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        HttpRequest request = new HttpRequest();
+        HTTPRequest request = new HTTPRequest();
         request.setOnResponseListener((response, status) -> {
             System.out.println(response.getResponseText());
         });

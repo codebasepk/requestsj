@@ -20,28 +20,12 @@ package com.byteshaft.requests;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.net.ssl.SSLHandshakeException;
 
 public class HTTPRequest {
 
@@ -55,16 +39,8 @@ public class HTTPRequest {
     private OnFileUploadProgressListener mOnFileUploadProgressListener;
     private OnResponseListener mOnResponseListener;
 
-    private HttpURLConnection mConnection;
-    private int mConnectTimeout;
-    private String mStatusText;
-    private String mResponseText;
-    private String mUrl;
-    private int mFilesCount;
-    private int mCurrentFileNumber;
-    private int mStatus;
+    private int mConnectTimeout = 15000;
     private ExecutorService mThread;
-    private BufferedOutputStream mOutputStream;
     private Handler mHandler;
     private Map<String, String> mHeaders;
 
@@ -98,21 +74,25 @@ public class HTTPRequest {
         mOnResponseListener = listener;
     }
 
-    private void get(String url) {
-        HTTP http = new HTTP();
-        http.request("GET", url)
+    public void get(String url) {
+        mThread.submit(() -> {
+            try {
+                HTTP http = new HTTP();
+                http.setUploadProgressListener(this::emitOnFileUploadProgress);
+                System.out.println("HEREERERER>........");
+                HTTPResponse res = http.request("GET", url, null, null, mConnectTimeout,
+                        mConnectTimeout);
+                System.out.println("Sending...");
+                emitOnResponse(res);
+            } catch (HTTPError error) {
+                emitOnError(error);
+            }
+        });
     }
 
-    public void setTimeout(int timeout) {
-        mConnectTimeout = timeout;
-    }
-
-    void emitOnResponse() {
+    void emitOnResponse(HTTPResponse response) {
         if (mOnResponseListener != null) {
-            mHandler.post(() -> {
-                HTTPResponse response = new HTTPResponse(mStatus, mStatusText, mResponseText, mUrl);
-                mOnResponseListener.onResponse(response);
-            });
+            mHandler.post(() -> mOnResponseListener.onResponse(response));
         }
     }
 
@@ -123,12 +103,9 @@ public class HTTPRequest {
         }
     }
 
-    void emitOnError(short error, Exception exception) {
+    void emitOnError(HTTPError error) {
         if (mOnErrorListener != null) {
-            mHandler.post(() -> {
-                mOnErrorListener.onError(new HTTPError());
-                Log.d(TAG, String.format("Emit Error: %s", error));
-            });
+            mHandler.post(() -> mOnErrorListener.onError(error));
         }
     }
 }

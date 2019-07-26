@@ -29,10 +29,10 @@ public class HTTP {
     private OutputStream mOutputStream;
     private int mFilesCount;
     private int mCurrentFileNumber;
-    private int mConnectTimeout = 15000;
     private String mStatusText;
     private String mResponseText;
     private short mStatus;
+    private HTTPRequest.OnFileUploadProgressListener mFileProgressListener;
 
     HTTPResponse request(String method, String url, String contentType, String payload,
                          int connectTimeout, int readTimeout) throws HTTPError {
@@ -41,6 +41,10 @@ public class HTTP {
         readResponse();
         cleanup();
         return new HTTPResponse(mStatus, mStatusText, mResponseText, url);
+    }
+
+    void setUploadProgressListener(HTTPRequest.OnFileUploadProgressListener listener) {
+        mFileProgressListener = listener;
     }
 
     private void connect(String endpoint, int connectTimeout, int readTimeout) throws HTTPError {
@@ -81,7 +85,9 @@ public class HTTP {
         } catch (ProtocolException e) {
             throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, e);
         }
-        mConn.setRequestProperty("Content-Type", contentType);
+        if (method != null && !method.equals("GET")) {
+            mConn.setRequestProperty("Content-Type", contentType);
+        }
         if (payload instanceof FormData) {
             sendRequest((FormData) payload);
         } else {
@@ -115,12 +121,14 @@ public class HTTP {
         sendRequestData(FormData.FINISH_LINE);
     }
 
-    private void cleanup() {
+    private void cleanup() throws HTTPError {
         try {
-            mOutputStream.flush();
-            mOutputStream.close();
-        } catch (IOException ignore) {
-            // We are done...
+            if (mOutputStream != null) {
+                mOutputStream.flush();
+                mOutputStream.close();
+            }
+        } catch (IOException e) {
+            throw new HTTPError(HTTPError.UNKNOWN, e);
         }
         mConn.disconnect();
     }
@@ -209,7 +217,9 @@ public class HTTP {
                 mOutputStream.write(buffer, 0, bytesRead);
                 mOutputStream.flush();
                 uploaded += bytesRead;
-//                emitOnFileUploadProgress(uploadFile, uploaded, total);
+                if (mFileProgressListener != null) {
+                    mFileProgressListener.onFileUploadProgress(uploadFile, uploaded, total);
+                }
             }
         } catch (IOException e) {
             Log.e(TAG, e.getMessage(), e);

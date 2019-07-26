@@ -1,12 +1,15 @@
 package com.byteshaft.requests.sample;
 
 import android.os.Bundle;
-import android.os.Environment;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.byteshaft.requests.FormData;
+import com.byteshaft.requests.HTTPError;
 import com.byteshaft.requests.HTTPRequest;
+import com.byteshaft.requests.HTTPResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,37 +20,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         HTTPRequest request = new HTTPRequest();
-        request.setOnResponseListener((response, status) -> {
-            System.out.println(response.getResponseText());
+        request.setOnResponseListener(new HTTPRequest.OnResponseListener() {
+            @Override
+            public void onResponse(HTTPResponse response) {
+                System.out.println(response.statusCode);
+                System.out.println(response.statusText);
+                try {
+                    JsonNode node = response.json();
+                    System.out.println(node);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         });
-        request.setOnFileUploadProgressListener((file, loaded, total) -> {
-
+        request.setOnErrorListener(new HTTPRequest.OnErrorListener() {
+            @Override
+            public void onError(HTTPError error) {
+                System.out.println(error.code);
+                error.printStackTrace();
+            }
         });
-        request.setOnErrorListener((response, error, exception) -> {
-            System.out.println("WE have the error " + response.toString());
-        });
-        request.setRequestHeader("Authorization", "Token fd2864175d949c7a01a8d186d751658fb5288581");
-        FormData data = new FormData();
-        data.append(FormData.TYPE_CONTENT_TEXT, "full_name", " īñ4ëì");
-        request.send("POST", TEST_URL, data);
-    }
-
-    private FormData getData() {
-        FormData data = new FormData();
-        data.append(FormData.TYPE_CONTENT_TEXT, "email", "x@gmail.com");
-        data.append(FormData.TYPE_CONTENT_TEXT, "driving_experience", "NEW");
-        data.append(FormData.TYPE_CONTENT_TEXT, "full_name", "X User");
-        data.append(FormData.TYPE_CONTENT_TEXT, "password", "x11");
-        data.append(FormData.TYPE_CONTENT_TEXT, "phone_number", "911");
-        data.append(FormData.TYPE_CONTENT_TEXT, "transmission_type", "0");
-        data.append(FormData.TYPE_CONTENT_FILE, "doc1", getPath());
-        data.append(FormData.TYPE_CONTENT_FILE, "doc2", getPath());
-        data.append(FormData.TYPE_CONTENT_FILE, "doc3", getPath());
-        return data;
-    }
-
-    private String getPath() {
-        String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        return dirPath + "/ok.png";
+        request.get("https://httpbin.org/get");
     }
 }

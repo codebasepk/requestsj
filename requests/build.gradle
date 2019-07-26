@@ -4,20 +4,20 @@ ext {
     bintrayRepo = 'maven'
     bintrayName = 'requests'
 
-    publishedGroupId = 'com.byteshaft.requests'
+    publishedGroupId = 'pk.codebase.requestsj'
     libraryName = 'Requests'
     artifact = 'requests'
 
     libraryDescription = 'XmlHttpRequest for Android'
 
-    siteUrl = 'https://github.com/byteShaft/requests'
-    gitUrl = 'https://github.com/byteShaft/requests.git'
+    siteUrl = 'https://github.com/codebasepk/requestsj'
+    gitUrl = 'https://github.com/codebasepk/requestsj.git'
 
-    libraryVersion = '0.5.2'
+    libraryVersion = '0.8.0'
 
-    developerId = 'byteShaft'
-    developerName = 'byteShaft Services'
-    developerEmail = 'byteshaft@gmail.com'
+    developerId = 'CodeBasePK'
+    developerName = 'CodeBasePK'
+    developerEmail = 'codebasepk@gmail.com'
 
     licenseName = 'The GNU General Public License, Version 3.0'
     licenseUrl = 'https://www.gnu.org/licenses/gpl-3.0.txt'
@@ -32,7 +32,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 29
         versionCode 1
-        versionName "0.5.2"
+        versionName "0.8.0"
     }
     buildTypes {
         release {
@@ -44,6 +44,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dependencies {
+        api 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     }
 }
 

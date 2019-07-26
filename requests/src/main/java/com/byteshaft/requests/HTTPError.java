@@ -17,7 +17,7 @@ public class HTTPError extends Exception {
     public static final short CONNECTION_TIMED_OUT = 8;
     public static final short LOST_CONNECTION = 9;
 
-    private final short code;
+    public final short code;
 
     public HTTPError(short code, Throwable cause) {
         super(cause);

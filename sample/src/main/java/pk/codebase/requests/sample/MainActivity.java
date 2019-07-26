@@ -1,15 +1,16 @@
-package com.byteshaft.requests.sample;
+package pk.codebase.requests.sample;
 
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.byteshaft.requests.HTTPError;
-import com.byteshaft.requests.HTTPRequest;
-import com.byteshaft.requests.HTTPResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
+
+import pk.codebase.requests.HTTPError;
+import pk.codebase.requests.HTTPRequest;
+import pk.codebase.requests.HTTPResponse;
 
 public class MainActivity extends AppCompatActivity {
 

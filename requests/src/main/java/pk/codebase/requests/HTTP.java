@@ -1,4 +1,4 @@
-package com.byteshaft.requests;
+package pk.codebase.requests;
 
 import android.util.Log;
 
@@ -35,7 +35,7 @@ public class HTTP {
     private HTTPRequest.OnFileUploadProgressListener mFileProgressListener;
 
     HTTPResponse request(String method, String url, String contentType, String payload,
-                         int connectTimeout, int readTimeout) throws HTTPError {
+                                                int connectTimeout, int readTimeout) throws HTTPError {
         connect(url, connectTimeout, readTimeout);
         send(method, contentType, payload);
         readResponse();

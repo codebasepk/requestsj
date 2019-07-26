@@ -1,4 +1,4 @@
-package com.byteshaft.requests;
+package pk.codebase.requests;
 
 public class HTTPError extends Exception {
 

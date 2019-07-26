@@ -1,4 +1,4 @@
-package com.byteshaft.requests;
+package pk.codebase.requests;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

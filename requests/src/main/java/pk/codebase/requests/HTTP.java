@@ -45,6 +45,7 @@ class HTTP {
 
     private HttpURLConnection mConn;
     private OutputStream mOutputStream;
+    private InputStream mInputStream;
     private int mFilesCount;
     private int mCurrentFileNumber;
     private String mStatusText;
@@ -149,6 +150,9 @@ class HTTP {
                 mOutputStream.flush();
                 mOutputStream.close();
             }
+            if (mInputStream != null) {
+                mInputStream.close();
+            }
         } catch (IOException e) {
             throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CLEANING, e);
         }
@@ -158,20 +162,20 @@ class HTTP {
     private void readResponse() throws HTTPError {
         assignResponseCodeAndMessage();
         try {
-            readFromInputStream(mConn.getInputStream());
+            mInputStream = mConn.getInputStream();
         } catch (IOException ignore) {
-            readFromInputStream(mConn.getErrorStream());
+            mInputStream = mConn.getErrorStream();
         }
+        readFromInputStream();
     }
 
     private void assignResponseCodeAndMessage() throws HTTPError {
         try {
             Log.v(TAG, "Getting response headers");
             mStatus = (short) mConn.getResponseCode();
-            Log.d(TAG, String.format("Request status: %s", mStatus));
+            Log.d(TAG, String.format("Response code: %s", mStatus));
             mStatusText = mConn.getResponseMessage();
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
             if (e instanceof SocketException) {
                 throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
             } else if (e instanceof SocketTimeoutException) {
@@ -182,9 +186,9 @@ class HTTP {
         }
     }
 
-    private void readFromInputStream(InputStream inputStream) throws HTTPError {
+    private void readFromInputStream() throws HTTPError {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(mInputStream));
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -192,7 +196,6 @@ class HTTP {
             }
             mResponseText = output.toString();
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
             if (e instanceof SocketTimeoutException) {
                 throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
             } else {
@@ -212,8 +215,6 @@ class HTTP {
             mOutputStream.write(outputInBytes);
             mOutputStream.flush();
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-
             if (e instanceof SocketException) {
                 throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
@@ -244,7 +245,6 @@ class HTTP {
                 }
             }
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
             if (e instanceof FileNotFoundException) {
                 if (e.getMessage().contains("ENOENT")) {
                     throw new HTTPError(HTTPError.FILE_DOES_NOT_EXIST, HTTPError.STAGE_SENDING, e);

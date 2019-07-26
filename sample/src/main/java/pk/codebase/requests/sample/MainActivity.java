@@ -31,7 +31,11 @@ import pk.codebase.requests.HTTPResponse;
 public class MainActivity extends AppCompatActivity implements HTTPRequest.OnResponseListener,
         HTTPRequest.OnErrorListener {
 
-    private final String TEST_URL = "https://httpbin.org/post";
+    private final String URL_GET = "https://httpbin.org/get";
+    private final String URL_POST = "https://httpbin.org/post";
+    private final String URL_PUT = "https://httpbin.org/put";
+    private final String URL_DELETE = "https://httpbin.org/delete";
+    private final String URL_PATCH = "https://httpbin.org/patch";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +44,14 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
         HTTPRequest request = new HTTPRequest();
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
-        request.get("https://httpbin.org/get");
+        request.get(URL_GET);
     }
 
     @Override
     public void onError(HTTPError error) {
         System.out.println(error.code);
+        System.out.println(error.reason);
+        System.out.println(error.stage);
         error.printStackTrace();
     }
 
@@ -56,6 +62,6 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
         JsonNode node = response.json();
         System.out.println(node);
         System.out.println(response.text);
-        System.out.println(node.get("Testing"));
+        System.out.println(node.get("args"));
     }
 }

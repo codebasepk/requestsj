@@ -19,11 +19,18 @@
 package pk.codebase.requests.sample;
 
 import android.os.Bundle;
+import android.provider.FontRequest;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import pk.codebase.requests.FormData;
 import pk.codebase.requests.HTTPError;
 import pk.codebase.requests.HTTPRequest;
 import pk.codebase.requests.HTTPResponse;
@@ -44,7 +51,13 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
         HTTPRequest request = new HTTPRequest();
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
-        request.get(URL_GET);
+        Map<String, String> headers = new HashMap<>();
+//        headers.put("Content-Type", "application/json");
+        headers.put("Authorization", "Token asdasdasdsa");
+//        request.get(URL_GET, headers);
+        FormData data = new FormData();
+        data.append(FormData.TYPE_CONTENT_TEXT, "name", "omer");
+        request.post(URL_POST, data, headers);
     }
 
     @Override
@@ -59,9 +72,25 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
     public void onResponse(HTTPResponse response) {
         System.out.println(response.code);
         System.out.println(response.reason);
-        JsonNode node = response.json();
-        System.out.println(node);
         System.out.println(response.text);
-        System.out.println(node.get("args"));
+//        System.out.println(response.pojo(User.class));
+    }
+
+    static class User {
+        private String firstName;
+        private String lastName;
+
+        public User(String firstName, String lastName) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
     }
 }

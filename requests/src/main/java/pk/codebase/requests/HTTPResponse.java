@@ -51,4 +51,15 @@ public class HTTPResponse {
         }
         return null;
     }
+
+    public <T> Object pojo(Class<T> expectedType) {
+        if (text != null) {
+            try {
+                return new ObjectMapper().readValue(text, expectedType);
+            } catch (IOException e) {
+                Log.d(TAG, e.getMessage(), e);
+            }
+        }
+        return null;
+    }
 }

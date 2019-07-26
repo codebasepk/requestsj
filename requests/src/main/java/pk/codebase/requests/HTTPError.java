@@ -35,6 +35,7 @@ public class HTTPError extends Exception {
     public static final short NETWORK_UNREACHABLE = 7;
     public static final short CONNECTION_TIMED_OUT = 8;
     public static final short LOST_CONNECTION = 9;
+    public static final short CANNOT_SERIALIZE = 10;
 
     public final short code;
     public final short stage;

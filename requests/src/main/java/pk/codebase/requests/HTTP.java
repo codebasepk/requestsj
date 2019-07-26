@@ -20,6 +20,9 @@ package pk.codebase.requests;
 
 import android.util.Log;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +39,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -53,10 +57,29 @@ class HTTP {
     private short mStatus;
     private HTTPRequest.OnFileUploadProgressListener mFileProgressListener;
 
-    HTTPResponse request(String method, String url, String contentType, String payload,
+    HTTPResponse request(String method, String url, Object payloadRaw, Map<String, String> headers,
                          int connectTimeout, int readTimeout) throws HTTPError {
-        connect(url, connectTimeout, readTimeout);
-        send(method, contentType, payload);
+        int payloadLength = 0;
+        Object payload = payloadRaw;
+        if (payloadRaw != null) {
+            if (payloadRaw instanceof FormData) {
+                payloadLength = ((FormData) payloadRaw).getContentLength();
+            } else if (payloadRaw instanceof String) {
+                payloadLength = ((String) payloadRaw).getBytes().length;
+            } else {
+                try {
+                    String pojoPayload = new ObjectMapper().writeValueAsString(payloadRaw);
+                    payloadLength = pojoPayload.getBytes().length;
+                    payload = pojoPayload;
+                } catch (JsonProcessingException e) {
+                    throw new HTTPError(HTTPError.CANNOT_SERIALIZE, HTTPError.STAGE_CONNECTING, e);
+                }
+            }
+        }
+        connect(method, url, payloadLength, headers, connectTimeout, readTimeout);
+        System.out.println("Connected...");
+        send(payload);
+        System.out.println("Sent...");
         readResponse();
         cleanup();
         return new HTTPResponse(mStatus, mStatusText, mResponseText, url);
@@ -66,12 +89,21 @@ class HTTP {
         mFileProgressListener = listener;
     }
 
-    private void connect(String endpoint, int connectTimeout, int readTimeout) throws HTTPError {
+    private void connect(String method, String endpoint, int payloadLength,
+                         Map<String, String> headers, int connectTimeout, int readTimeout)
+            throws HTTPError {
         try {
             URL url = new URL(endpoint);
             mConn = (HttpURLConnection) url.openConnection();
+            mConn.setRequestMethod(method);
             mConn.setConnectTimeout(connectTimeout);
             mConn.setReadTimeout(readTimeout);
+            if (headers != null) {
+                for (Map.Entry<String, String> header: headers.entrySet()) {
+                    mConn.setRequestProperty(header.getKey(), header.getValue());
+                }
+            }
+            mConn.setFixedLengthStreamingMode(payloadLength);
             mConn.connect();
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
@@ -96,21 +128,15 @@ class HTTP {
                 throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_CONNECTING, e);
             } else if (e instanceof SocketTimeoutException) {
                 throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_CONNECTING, e);
+            } else if (e instanceof ProtocolException) {
+                throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, HTTPError.STAGE_CONNECTING, e);
             } else {
                 throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CONNECTING, e);
             }
         }
     }
 
-    private void send(String method, String contentType, Object payload) throws HTTPError {
-        try {
-            mConn.setRequestMethod(method);
-        } catch (ProtocolException e) {
-            throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, HTTPError.STAGE_SENDING, e);
-        }
-        if (method != null && !method.equals("GET")) {
-            mConn.setRequestProperty("Content-Type", contentType);
-        }
+    private void send(Object payload) throws HTTPError {
         if (payload instanceof FormData) {
             sendRequest((FormData) payload);
         } else {
@@ -120,15 +146,11 @@ class HTTP {
 
     private void sendRequest(String data) throws HTTPError {
         if (data != null) {
-            mConn.setFixedLengthStreamingMode(data.getBytes().length);
-        }
-        if (data != null) {
             sendRequestData(data);
         }
     }
 
     private void sendRequest(FormData data) throws HTTPError {
-        mConn.setFixedLengthStreamingMode(data.getContentLength());
         mFilesCount = data.getFilesCount();
         ArrayList<FormData.MultiPartData> requestItems = data.getData();
         for (FormData.MultiPartData item : requestItems) {

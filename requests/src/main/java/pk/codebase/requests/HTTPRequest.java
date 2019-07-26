@@ -21,6 +21,11 @@ package pk.codebase.requests;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +44,6 @@ public class HTTPRequest {
     private OnFileUploadProgressListener mOnFileUploadProgressListener;
     private OnResponseListener mOnResponseListener;
 
-    private int mConnectTimeout = 15000;
     private ExecutorService mThread;
     private Handler mHandler;
     private Map<String, String> mHeaders;
@@ -74,18 +78,62 @@ public class HTTPRequest {
         mOnResponseListener = listener;
     }
 
+    /*
+    MUST BE CALLED FROM A BACKGROUND THREAD!
+     */
+    private void request(String method, String url, Object payload, Map<String, String> headers,
+                         ConnectOptions options) {
+        HTTP http = new HTTP();
+        http.setUploadProgressListener(this::emitOnFileUploadProgress);
+        try {
+            HTTPResponse response = http.request(method, url, payload, headers,
+                    options.connectTimeout, options.readTimeout);
+            emitOnResponse(response);
+        } catch (HTTPError error) {
+            emitOnError(error);
+        }
+    }
+
     public void get(String url) {
-        mThread.submit(() -> {
-            try {
-                HTTP http = new HTTP();
-                http.setUploadProgressListener(this::emitOnFileUploadProgress);
-                HTTPResponse res = http.request("GET", url, null, null, mConnectTimeout,
-                        mConnectTimeout);
-                emitOnResponse(res);
-            } catch (HTTPError error) {
-                emitOnError(error);
-            }
-        });
+        get(url, null);
+    }
+
+    public void get(String url, Map<String, String> headers) {
+        mThread.submit(() -> request("GET", url, null, headers, new ConnectOptions()));
+    }
+
+    public void post(String url, String payload, Map<String, String> headers) {
+        mThread.submit(() -> request("POST", url, payload, headers, new ConnectOptions()));
+    }
+
+    public void post(String url, FormData payload, Map<String, String> headers) {
+        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
+            headers.put("Content-Type", CONTENT_TYPE_FORM);
+        }
+        mThread.submit(() -> request("POST", url, payload, headers, new ConnectOptions()));
+    }
+
+     public void post(String url, JSONObject payload, Map<String, String> headers) {
+        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
+             headers.put("Content-Type", CONTENT_TYPE_JSON);
+        }
+        mThread.submit(() -> request("POST", url, payload.toString(), headers,
+                new ConnectOptions()));
+    }
+
+     public void post(String url, JSONArray payload, Map<String, String> headers) {
+        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
+             headers.put("Content-Type", CONTENT_TYPE_JSON);
+        }
+        mThread.submit(() -> request("POST", url, payload.toString(), headers,
+                new ConnectOptions()));
+    }
+
+     public void post(String url, Object pojo, Map<String, String> headers) {
+        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
+             headers.put("Content-Type", CONTENT_TYPE_JSON);
+        }
+        mThread.submit(() -> request("POST", url, pojo, headers, new ConnectOptions()));
     }
 
     private void emitOnResponse(HTTPResponse response) {

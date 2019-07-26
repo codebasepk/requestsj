@@ -1,6 +1,6 @@
 /*
- * Requests, an implementation of XmlHttpRequest for Android
- * Copyright (C) 2016 byteShaft
+ * Requests for Android
+ * Copyright (C) 2016-2019 CodeBasePK
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,10 +79,8 @@ public class HTTPRequest {
             try {
                 HTTP http = new HTTP();
                 http.setUploadProgressListener(this::emitOnFileUploadProgress);
-                System.out.println("HEREERERER>........");
                 HTTPResponse res = http.request("GET", url, null, null, mConnectTimeout,
                         mConnectTimeout);
-                System.out.println("Sending...");
                 emitOnResponse(res);
             } catch (HTTPError error) {
                 emitOnError(error);
@@ -90,20 +88,20 @@ public class HTTPRequest {
         });
     }
 
-    void emitOnResponse(HTTPResponse response) {
+    private void emitOnResponse(HTTPResponse response) {
         if (mOnResponseListener != null) {
             mHandler.post(() -> mOnResponseListener.onResponse(response));
         }
     }
 
-    void emitOnFileUploadProgress(File file, long loaded, long total) {
+    private void emitOnFileUploadProgress(File file, long loaded, long total) {
         if (mOnFileUploadProgressListener != null) {
             mHandler.post(() -> mOnFileUploadProgressListener.onFileUploadProgress(
                     file, loaded, total));
         }
     }
 
-    void emitOnError(HTTPError error) {
+    private void emitOnError(HTTPError error) {
         if (mOnErrorListener != null) {
             mHandler.post(() -> mOnErrorListener.onError(error));
         }

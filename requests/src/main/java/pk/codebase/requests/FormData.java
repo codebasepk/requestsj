@@ -1,6 +1,6 @@
 /*
- * Requests, an implementation of XmlHttpRequest for Android
- * Copyright (C) 2016 byteShaft
+ * Requests for Android
+ * Copyright (C) 2016-2019 CodeBasePK
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@ public class FormData {
     private int mFilesCount;
 
     static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
-    public static final String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
+    public static final String FINISH_LINE = String.format(
+            "%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
 
     public static final int TYPE_CONTENT_TEXT = 1;
     public static final int TYPE_CONTENT_FILE = 2;

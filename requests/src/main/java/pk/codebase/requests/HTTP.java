@@ -1,3 +1,21 @@
+/*
+ * Requests for Android
+ * Copyright (C) 2019 CodeBasePK
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package pk.codebase.requests;
 
 import android.util.Log;
@@ -21,7 +39,7 @@ import java.util.ArrayList;
 
 import javax.net.ssl.SSLHandshakeException;
 
-public class HTTP {
+class HTTP {
 
     private static final String TAG = HTTP.class.getName();
 
@@ -35,7 +53,7 @@ public class HTTP {
     private HTTPRequest.OnFileUploadProgressListener mFileProgressListener;
 
     HTTPResponse request(String method, String url, String contentType, String payload,
-                                                int connectTimeout, int readTimeout) throws HTTPError {
+                         int connectTimeout, int readTimeout) throws HTTPError {
         connect(url, connectTimeout, readTimeout);
         send(method, contentType, payload);
         readResponse();
@@ -56,25 +74,29 @@ public class HTTP {
             mConn.connect();
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
-                throw new HTTPError(HTTPError.INVALID_URL, e);
+                throw new HTTPError(HTTPError.INVALID_URL, HTTPError.STAGE_CONNECTING, e);
             } else if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
-                    throw new HTTPError(HTTPError.CONNECTION_REFUSED, e);
+                    throw new HTTPError(HTTPError.CONNECTION_REFUSED,
+                            HTTPError.STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ENETUNREACH")) {
-                    throw new HTTPError(HTTPError.NETWORK_UNREACHABLE, e);
+                    throw new HTTPError(HTTPError.NETWORK_UNREACHABLE,
+                            HTTPError.STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ETIMEDOUT")) {
-                    throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, e);
+                    throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT,
+                            HTTPError.STAGE_CONNECTING, e);
                 } else {
-                    throw new HTTPError(HTTPError.UNKNOWN, e);
+                    throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CONNECTING, e);
                 }
             } else if (e instanceof SSLHandshakeException) {
-                throw new HTTPError(HTTPError.SSL_CERTIFICATE_INVALID, e);
+                throw new HTTPError(HTTPError.SSL_CERTIFICATE_INVALID,
+                        HTTPError.STAGE_CONNECTING, e);
             } else if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, e);
+                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_CONNECTING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, e);
+                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_CONNECTING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, e);
+                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CONNECTING, e);
             }
         }
     }
@@ -83,7 +105,7 @@ public class HTTP {
         try {
             mConn.setRequestMethod(method);
         } catch (ProtocolException e) {
-            throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, e);
+            throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, HTTPError.STAGE_SENDING, e);
         }
         if (method != null && !method.equals("GET")) {
             mConn.setRequestProperty("Content-Type", contentType);
@@ -128,7 +150,7 @@ public class HTTP {
                 mOutputStream.close();
             }
         } catch (IOException e) {
-            throw new HTTPError(HTTPError.UNKNOWN, e);
+            throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CLEANING, e);
         }
         mConn.disconnect();
     }
@@ -151,11 +173,11 @@ public class HTTP {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage(), e);
             if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, e);
+                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, e);
+                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, e);
+                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_RECEIVING, e);
             }
         }
     }
@@ -172,9 +194,9 @@ public class HTTP {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage(), e);
             if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, e);
+                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, e);
+                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_RECEIVING, e);
             }
         }
     }
@@ -193,11 +215,11 @@ public class HTTP {
             Log.e(TAG, e.getMessage(), e);
 
             if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, e);
+                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, e);
+                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_SENDING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, e);
+                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
             }
         }
     }
@@ -225,18 +247,19 @@ public class HTTP {
             Log.e(TAG, e.getMessage(), e);
             if (e instanceof FileNotFoundException) {
                 if (e.getMessage().contains("ENOENT")) {
-                    throw new HTTPError(HTTPError.FILE_DOES_NOT_EXIST, e);
+                    throw new HTTPError(HTTPError.FILE_DOES_NOT_EXIST, HTTPError.STAGE_SENDING, e);
                 } else if (e.getMessage().contains("EACCES")) {
-                    throw new HTTPError(HTTPError.FILE_READ_PERMISSION_DENIED, e);
+                    throw new HTTPError(HTTPError.FILE_READ_PERMISSION_DENIED,
+                            HTTPError.STAGE_SENDING, e);
                 } else {
-                    throw new HTTPError(HTTPError.UNKNOWN, e);
+                    throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
                 }
             } else if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, e);
+                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, e);
+                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_SENDING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, e);
+                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
             }
         }
     }

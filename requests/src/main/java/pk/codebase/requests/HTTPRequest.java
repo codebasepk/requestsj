@@ -39,6 +39,7 @@ public class HTTPRequest {
     private final String CONTENT_TYPE_JSON = "application/json";
     private final String CONTENT_TYPE_FORM = String.format(
             "multipart/form-data; boundary=%s", FormData.BOUNDARY);
+    private final String CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
 
     private OnErrorListener mOnErrorListener;
     private OnFileUploadProgressListener mOnFileUploadProgressListener;
@@ -78,9 +79,6 @@ public class HTTPRequest {
         mOnResponseListener = listener;
     }
 
-    /*
-    MUST BE CALLED FROM A BACKGROUND THREAD!
-     */
     private void request(String method, String url, Object payload, Map<String, String> headers,
                          ConnectOptions options) {
         HTTP http = new HTTP();

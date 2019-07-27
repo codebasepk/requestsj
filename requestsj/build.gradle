@@ -7,9 +7,8 @@ bintray {
     key = ''
     configurations = ['archives']
     publish = true
-    dryRun = true
     pkg {
-        repo = 'requestsj'
+        repo = 'maven'
         name = 'requestsj'
         userOrg = 'codebasepk'
         licenses = ['GPL-3.0']
@@ -17,43 +16,6 @@ bintray {
         version {
             name = '0.8.0'
             released = new Date()
-        }
-    }
-    filesSpec {
-        version '0.8.0'
-    }
-}
-
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging 'aar'
-                groupId 'pk.codebase.requestsj'
-                artifactId 'requestsj'
-                name 'requestsj'
-                description = 'Requests for Android'
-                url 'https://github.com/codebasepk/requestsj'
-
-                licenses {
-                    license {
-                        name 'The GNU General Public License, Version 3.0'
-                        url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
-                    }
-                }
-                developers {
-                    developer {
-                        id 'codebasepk'
-                        name 'CodeBasePK'
-                        email 'codebasepk@gmail.com'
-                    }
-                }
-                scm {
-                    connection 'https://github.com/codebasepk/requestsj.git'
-                    developerConnection 'https://github.com/codebasepk/requestsj'
-                    url 'https://github.com/codebasepk/requestsj'
-                }
-            }
         }
     }
 }
@@ -107,4 +69,41 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives javadocJar
     archives sourcesJar
+}
+
+project.archivesBaseName = 'requestsj'
+group = 'pk.codebase.requestsj'
+version = '0.8.0'
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                groupId 'pk.codebase.requestsj'
+                artifactId 'requestsj'
+                name 'requestsj'
+                description = 'Requests for Android'
+                url 'https://github.com/codebasepk/requestsj'
+
+                licenses {
+                    license {
+                        name 'The GNU General Public License, Version 3.0'
+                        url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'codebasepk'
+                        name 'CodeBasePK'
+                        email 'codebasepk@gmail.com'
+                    }
+                }
+                scm {
+                    connection 'https://github.com/codebasepk/requestsj.git'
+                    developerConnection 'https://github.com/codebasepk/requestsj'
+                    url 'https://github.com/codebasepk/requestsj'
+                }
+            }
+        }
+    }
 }

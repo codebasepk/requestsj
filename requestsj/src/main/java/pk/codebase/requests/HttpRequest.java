@@ -121,7 +121,6 @@ public class HttpRequest {
         if (actualHeaders == null) {
             actualHeaders = new HashMap<>();
         }
-
         if (!method.equals("GET")) {
             if (payload instanceof FormData) {
                 actualHeaders.put("Content-Type", CONTENT_TYPE_FORM);
@@ -163,14 +162,23 @@ public class HttpRequest {
 
     private void actuallyPost(String url, Object payload, Map<String, String> headers,
                               HttpOptions options) {
-        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
-            headers.put("Content-Type", CONTENT_TYPE_JSON);
-        }
         mThread.submit(() -> request("POST", url, payload, headers, options));
+    }
+
+    public void post(String url) {
+        actuallyPost(url, null, new HashMap<>(), new HttpOptions());
     }
 
     public void post(String url, String payload) {
         actuallyPost(url, payload, new HashMap<>(), new HttpOptions());
+    }
+
+    public void post(String url, Map<String, String> headers) {
+        actuallyPost(url, null, headers, new HttpOptions());
+    }
+
+    public void post(String url, HttpOptions options) {
+        actuallyPost(url, null, new HashMap<>(), options);
     }
 
     public void post(String url, String payload, Map<String, String> headers) {

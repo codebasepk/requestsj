@@ -10,7 +10,7 @@ bintray {
     pkg {
         repo = 'maven'
         name = 'requestsj'
-        userOrg = 'codebasepk'
+        userOrg = 'basers'
         licenses = ['GPL-3.0']
         vcsUrl = 'https://github.com/codebasepk/requestsj.git'
         version {

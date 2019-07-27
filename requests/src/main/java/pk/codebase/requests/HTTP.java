@@ -43,6 +43,22 @@ import java.util.Map;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import static pk.codebase.requests.HTTPError.CANNOT_SERIALIZE;
+import static pk.codebase.requests.HTTPError.CONNECTION_REFUSED;
+import static pk.codebase.requests.HTTPError.CONNECTION_TIMED_OUT;
+import static pk.codebase.requests.HTTPError.FILE_DOES_NOT_EXIST;
+import static pk.codebase.requests.HTTPError.FILE_READ_PERMISSION_DENIED;
+import static pk.codebase.requests.HTTPError.INVALID_REQUEST_METHOD;
+import static pk.codebase.requests.HTTPError.INVALID_URL;
+import static pk.codebase.requests.HTTPError.LOST_CONNECTION;
+import static pk.codebase.requests.HTTPError.NETWORK_UNREACHABLE;
+import static pk.codebase.requests.HTTPError.SSL_CERTIFICATE_INVALID;
+import static pk.codebase.requests.HTTPError.STAGE_CLEANING;
+import static pk.codebase.requests.HTTPError.STAGE_CONNECTING;
+import static pk.codebase.requests.HTTPError.STAGE_RECEIVING;
+import static pk.codebase.requests.HTTPError.STAGE_SENDING;
+import static pk.codebase.requests.HTTPError.UNKNOWN;
+
 class HTTP {
 
     private static final String TAG = HTTP.class.getName();
@@ -72,7 +88,7 @@ class HTTP {
                     payloadLength = pojoPayload.getBytes().length;
                     payload = pojoPayload;
                 } catch (JsonProcessingException e) {
-                    throw new HTTPError(HTTPError.CANNOT_SERIALIZE, HTTPError.STAGE_CONNECTING, e);
+                    throw new HTTPError(CANNOT_SERIALIZE, STAGE_CONNECTING, e);
                 }
             }
         }
@@ -107,31 +123,31 @@ class HTTP {
             mConn.connect();
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
-                throw new HTTPError(HTTPError.INVALID_URL, HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(INVALID_URL, STAGE_CONNECTING, e);
             } else if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
-                    throw new HTTPError(HTTPError.CONNECTION_REFUSED,
-                            HTTPError.STAGE_CONNECTING, e);
+                    throw new HTTPError(CONNECTION_REFUSED,
+                            STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ENETUNREACH")) {
-                    throw new HTTPError(HTTPError.NETWORK_UNREACHABLE,
-                            HTTPError.STAGE_CONNECTING, e);
+                    throw new HTTPError(NETWORK_UNREACHABLE,
+                            STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ETIMEDOUT")) {
-                    throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT,
-                            HTTPError.STAGE_CONNECTING, e);
+                    throw new HTTPError(CONNECTION_TIMED_OUT,
+                            STAGE_CONNECTING, e);
                 } else {
-                    throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CONNECTING, e);
+                    throw new HTTPError(UNKNOWN, STAGE_CONNECTING, e);
                 }
             } else if (e instanceof SSLHandshakeException) {
-                throw new HTTPError(HTTPError.SSL_CERTIFICATE_INVALID,
-                        HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(SSL_CERTIFICATE_INVALID,
+                        STAGE_CONNECTING, e);
             } else if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(LOST_CONNECTION, STAGE_CONNECTING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_CONNECTING, e);
             } else if (e instanceof ProtocolException) {
-                throw new HTTPError(HTTPError.INVALID_REQUEST_METHOD, HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(INVALID_REQUEST_METHOD, STAGE_CONNECTING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CONNECTING, e);
+                throw new HTTPError(UNKNOWN, STAGE_CONNECTING, e);
             }
         }
     }
@@ -176,7 +192,7 @@ class HTTP {
                 mInputStream.close();
             }
         } catch (IOException e) {
-            throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_CLEANING, e);
+            throw new HTTPError(UNKNOWN, STAGE_CLEANING, e);
         }
         mConn.disconnect();
     }
@@ -199,11 +215,11 @@ class HTTP {
             mStatusText = mConn.getResponseMessage();
         } catch (IOException e) {
             if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
+                throw new HTTPError(LOST_CONNECTION, STAGE_RECEIVING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_RECEIVING, e);
+                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_RECEIVING, e);
+                throw new HTTPError(UNKNOWN, STAGE_RECEIVING, e);
             }
         }
     }
@@ -219,9 +235,9 @@ class HTTP {
             mResponseText = output.toString();
         } catch (IOException e) {
             if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_RECEIVING, e);
+                throw new HTTPError(LOST_CONNECTION, STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_RECEIVING, e);
+                throw new HTTPError(UNKNOWN, STAGE_RECEIVING, e);
             }
         }
     }
@@ -238,11 +254,11 @@ class HTTP {
             mOutputStream.flush();
         } catch (IOException e) {
             if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(LOST_CONNECTION, STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
             }
         }
     }
@@ -269,19 +285,19 @@ class HTTP {
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 if (e.getMessage().contains("ENOENT")) {
-                    throw new HTTPError(HTTPError.FILE_DOES_NOT_EXIST, HTTPError.STAGE_SENDING, e);
+                    throw new HTTPError(FILE_DOES_NOT_EXIST, STAGE_SENDING, e);
                 } else if (e.getMessage().contains("EACCES")) {
-                    throw new HTTPError(HTTPError.FILE_READ_PERMISSION_DENIED,
-                            HTTPError.STAGE_SENDING, e);
+                    throw new HTTPError(FILE_READ_PERMISSION_DENIED,
+                            STAGE_SENDING, e);
                 } else {
-                    throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
+                    throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
                 }
             } else if (e instanceof SocketException) {
-                throw new HTTPError(HTTPError.LOST_CONNECTION, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(LOST_CONNECTION, STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(HTTPError.CONNECTION_TIMED_OUT, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
             } else {
-                throw new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_SENDING, e);
+                throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
             }
         }
     }

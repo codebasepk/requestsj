@@ -19,13 +19,8 @@
 package pk.codebase.requests.sample;
 
 import android.os.Bundle;
-import android.provider.FontRequest;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,12 +46,12 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
         HTTPRequest request = new HTTPRequest();
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
-        Map<String, String> headers = new HashMap<>();
-//        headers.put("Content-Type", "application/json");
-        headers.put("Authorization", "Token asdasdasdsa");
-//        request.get(URL_GET, headers);
+        Map<String, String> headers = new HashMap<String, String>() {{
+            put("name", "john");
+            put("Content-Type", "application/json");
+        }};
         FormData data = new FormData();
-        data.append(FormData.TYPE_CONTENT_TEXT, "name", "omer");
+        data.addItem("name", "omer");
         request.post(URL_POST, data, headers);
     }
 

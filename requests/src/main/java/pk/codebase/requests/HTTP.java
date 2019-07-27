@@ -93,9 +93,7 @@ class HTTP {
             }
         }
         connect(method, url, payloadLength, headers, connectTimeout, readTimeout);
-        System.out.println("Connected...");
         send(payload);
-        System.out.println("Sent...");
         readResponse();
         cleanup();
         return new HTTPResponse(mStatus, mStatusText, mResponseText, url);
@@ -114,10 +112,8 @@ class HTTP {
             mConn.setRequestMethod(method);
             mConn.setConnectTimeout(connectTimeout);
             mConn.setReadTimeout(readTimeout);
-            if (headers != null) {
-                for (Map.Entry<String, String> header: headers.entrySet()) {
-                    mConn.setRequestProperty(header.getKey(), header.getValue());
-                }
+            for (Map.Entry<String, String> header: headers.entrySet()) {
+                mConn.setRequestProperty(header.getKey(), header.getValue());
             }
             mConn.setFixedLengthStreamingMode(payloadLength);
             mConn.connect();

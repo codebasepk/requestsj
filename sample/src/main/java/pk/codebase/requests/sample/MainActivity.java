@@ -22,10 +22,6 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import pk.codebase.requests.FormData;
 import pk.codebase.requests.HTTPError;
 import pk.codebase.requests.HTTPRequest;
 import pk.codebase.requests.HTTPResponse;
@@ -46,13 +42,7 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
         HTTPRequest request = new HTTPRequest();
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
-        Map<String, String> headers = new HashMap<String, String>() {{
-            put("name", "john");
-            put("Content-Type", "application/json");
-        }};
-        FormData data = new FormData();
-        data.addItem("name", "omer");
-        request.post(URL_POST, data, headers);
+        request.get(URL_GET);
     }
 
     @Override
@@ -65,27 +55,6 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
 
     @Override
     public void onResponse(HTTPResponse response) {
-        System.out.println(response.code);
-        System.out.println(response.reason);
         System.out.println(response.text);
-//        System.out.println(response.pojo(User.class));
-    }
-
-    static class User {
-        private String firstName;
-        private String lastName;
-
-        public User(String firstName, String lastName) {
-            this.firstName = firstName;
-            this.lastName = lastName;
-        }
-
-        public String getFirstName() {
-            return firstName;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
     }
 }

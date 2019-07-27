@@ -21,8 +21,6 @@ package pk.codebase.requests;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -80,58 +78,112 @@ public class HTTPRequest {
     }
 
     private void request(String method, String url, Object payload, Map<String, String> headers,
-                         ConnectOptions options) {
+                         HTTPOptions options) {
         HTTP http = new HTTP();
         http.setUploadProgressListener(this::emitOnFileUploadProgress);
+        Map<String, String> actualHeaders = headers;
+        if (actualHeaders == null) {
+            actualHeaders = new HashMap<>();
+        }
+
+        if (!method.equals("GET")) {
+            if (payload instanceof FormData) {
+                actualHeaders.put("Content-Type", CONTENT_TYPE_FORM);
+            } else if (!actualHeaders.containsKey("Content-Type") ||
+                    !actualHeaders.containsKey("content-type")) {
+                actualHeaders.put("Content-Type", CONTENT_TYPE_JSON);
+            }
+        }
         try {
-            HTTPResponse response = http.request(method, url, payload, headers,
+            HTTPResponse response = http.request(method, url, payload, actualHeaders,
                     options.connectTimeout, options.readTimeout);
             emitOnResponse(response);
         } catch (HTTPError error) {
             emitOnError(error);
+        } catch (Exception e) {
+            emitOnError(new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_UNKNOWN, e));
         }
+    }
+
+    private void actuallyGet(String url, Map<String, String> headers, HTTPOptions options) {
+        mThread.submit(() -> request("GET", url, null, headers, options));
     }
 
     public void get(String url) {
-        get(url, null);
+        actuallyGet(url, null, new HTTPOptions());
     }
 
     public void get(String url, Map<String, String> headers) {
-        mThread.submit(() -> request("GET", url, null, headers, new ConnectOptions()));
+        actuallyGet(url, headers, new HTTPOptions());
+    }
+
+    public void get(String url, HTTPOptions options) {
+        actuallyGet(url, null, options);
+    }
+
+    public void get(String url, Map<String, String> headers, HTTPOptions options) {
+        actuallyGet(url, headers, options);
+    }
+
+    private void actuallyPost(String url, Object payload, Map<String, String> headers,
+                              HTTPOptions options) {
+        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
+            headers.put("Content-Type", CONTENT_TYPE_JSON);
+        }
+        mThread.submit(() -> request("POST", url, payload, headers, options));
+    }
+
+    public void post(String url, String payload) {
+        actuallyPost(url, payload, new HashMap<>(), new HTTPOptions());
     }
 
     public void post(String url, String payload, Map<String, String> headers) {
-        mThread.submit(() -> request("POST", url, payload, headers, new ConnectOptions()));
+        actuallyPost(url, payload, headers, new HTTPOptions());
     }
 
     public void post(String url, FormData payload, Map<String, String> headers) {
-        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
-            headers.put("Content-Type", CONTENT_TYPE_FORM);
-        }
-        mThread.submit(() -> request("POST", url, payload, headers, new ConnectOptions()));
+        actuallyPost(url, payload, headers, new HTTPOptions());
     }
 
      public void post(String url, JSONObject payload, Map<String, String> headers) {
-        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
-             headers.put("Content-Type", CONTENT_TYPE_JSON);
-        }
-        mThread.submit(() -> request("POST", url, payload.toString(), headers,
-                new ConnectOptions()));
+         actuallyPost(url, payload, headers, new HTTPOptions());
     }
 
      public void post(String url, JSONArray payload, Map<String, String> headers) {
-        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
-             headers.put("Content-Type", CONTENT_TYPE_JSON);
-        }
-        mThread.submit(() -> request("POST", url, payload.toString(), headers,
-                new ConnectOptions()));
+        actuallyPost(url, payload, headers, new HTTPOptions());
     }
 
-     public void post(String url, Object pojo, Map<String, String> headers) {
-        if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
-             headers.put("Content-Type", CONTENT_TYPE_JSON);
-        }
-        mThread.submit(() -> request("POST", url, pojo, headers, new ConnectOptions()));
+     public void post(String url, Object pojo, Map<String, String> headers, HTTPOptions options) {
+         actuallyPost(url, pojo, headers, options);
+    }
+
+    private void actuallyDelete(String url, Object payload, Map<String, String> headers,
+                                HTTPOptions options) {
+        mThread.submit(() -> request("DELETE", url, payload, headers, options));
+    }
+
+    public void delete(String url, Object payload, Map<String, String> headers,
+                       HTTPOptions options) {
+        actuallyDelete(url, payload, headers, options);
+    }
+
+    private void actuallyPut(String url, Object payload, Map<String, String> headers,
+                                HTTPOptions options) {
+        mThread.submit(() -> request("PUT", url, payload, headers, options));
+    }
+
+    public void put(String url, Object payload, Map<String, String> headers, HTTPOptions options) {
+        actuallyPut(url, payload, headers, options);
+    }
+
+    private void actuallyPatch(String url, Object payload, Map<String, String> headers,
+                             HTTPOptions options) {
+        mThread.submit(() -> request("PATCH", url, payload, headers, options));
+    }
+
+    public void patch(String url, Object payload, Map<String, String> headers,
+                      HTTPOptions options) {
+        actuallyPatch(url, payload, headers, options);
     }
 
     private void emitOnResponse(HTTPResponse response) {

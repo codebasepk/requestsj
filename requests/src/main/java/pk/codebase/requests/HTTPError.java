@@ -20,10 +20,11 @@ package pk.codebase.requests;
 
 public class HTTPError extends Exception {
 
-    public static final short STAGE_CONNECTING = 0;
-    public static final short STAGE_SENDING = 1;
-    public static final short STAGE_RECEIVING = 2;
-    public static final short STAGE_CLEANING = 3;
+    public static final short STAGE_UNKNOWN = 0;
+    public static final short STAGE_CONNECTING = 1;
+    public static final short STAGE_SENDING = 2;
+    public static final short STAGE_RECEIVING = 3;
+    public static final short STAGE_CLEANING = 4;
 
     public static final short UNKNOWN = 0;
     public static final short INVALID_URL = 1;

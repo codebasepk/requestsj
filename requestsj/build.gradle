@@ -1,0 +1,109 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+bintray {
+    user = ''
+    key = ''
+    configurations = ['archives']
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'requestsj'
+        userOrg = 'basers'
+        licenses = ['GPL-3.0']
+        vcsUrl = 'https://github.com/codebasepk/requestsj.git'
+        version {
+            name = '0.8.0'
+            released = new Date()
+        }
+    }
+}
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.0"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 29
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dependencies {
+        api 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+    }
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+afterEvaluate {
+    javadoc.classpath += files(android.libraryVariants.collect { variant ->
+        variant.javaCompile.classpath.files
+    })
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+project.archivesBaseName = 'requestsj'
+group = 'pk.codebase.requestsj'
+version = '0.8.0'
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                groupId 'pk.codebase.requestsj'
+                artifactId 'requestsj'
+                name 'requestsj'
+                description = 'Requests for Android'
+                url 'https://github.com/codebasepk/requestsj'
+
+                licenses {
+                    license {
+                        name 'The GNU General Public License, Version 3.0'
+                        url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'codebasepk'
+                        name 'CodeBasePK'
+                        email 'codebasepk@gmail.com'
+                    }
+                }
+                scm {
+                    connection 'https://github.com/codebasepk/requestsj.git'
+                    developerConnection 'https://github.com/codebasepk/requestsj'
+                    url 'https://github.com/codebasepk/requestsj'
+                }
+            }
+        }
+    }
+}

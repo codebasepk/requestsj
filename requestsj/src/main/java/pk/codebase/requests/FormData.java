@@ -1,6 +1,6 @@
 /*
- * Requests, an implementation of XmlHttpRequest for Android
- * Copyright (C) 2016 byteShaft
+ * Requests for Android
+ * Copyright (C) 2016-2019 CodeBasePK
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.byteshaft.requests;
+package pk.codebase.requests;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,10 +33,11 @@ public class FormData {
     private int mFilesCount;
 
     static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
-    static final String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
+    public static final String FINISH_LINE = String.format(
+            "%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
 
-    public static final int TYPE_CONTENT_TEXT = 1;
-    public static final int TYPE_CONTENT_FILE = 2;
+    static final int TYPE_CONTENT_TEXT = 1;
+    static final int TYPE_CONTENT_FILE = 2;
 
     public FormData() {
         mData = new ArrayList<>();
@@ -81,7 +82,7 @@ public class FormData {
         }
     }
 
-    public void append(int contentType, String fieldName, String value) {
+    private void append(int contentType, String fieldName, String value) {
         if (contentType != TYPE_CONTENT_FILE && contentType != TYPE_CONTENT_TEXT) {
             throw new IllegalArgumentException("Invalid content type.");
         }
@@ -102,6 +103,14 @@ public class FormData {
         mContentLength += postContentString.length();
         data.setPostContentData(postContentString);
         mData.add(data);
+    }
+
+    public void addItem(String name, String value) {
+        append(TYPE_CONTENT_TEXT, name, value);
+    }
+
+    public void addItem(String name, File file) {
+        append(TYPE_CONTENT_FILE, name, file.getAbsolutePath());
     }
 
     int getContentLength() {

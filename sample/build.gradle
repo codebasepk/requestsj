@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.0"
 
     defaultConfig {
-        applicationId "com.byteshaft.requests.sample"
+        applicationId "pk.codebase.requestsj.sample"
         minSdkVersion 15
-        targetSdkVersion 26
+        targetSdkVersion 29
         versionCode 1
-        versionName "0.5.2"
+        versionName "0.8.0"
     }
     buildTypes {
         release {
@@ -17,10 +17,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    return true
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile project(path: ':requests')
-    compile 'com.android.support:appcompat-v7:26.1.0'
+    implementation project(path: ':requestsj')
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 }

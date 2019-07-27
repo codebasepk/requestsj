@@ -1,36 +1,37 @@
-# requests
-XmlHttpRequest for Android
+# RequestsJ
+Requests for Android
 
 # Getting started
-the build binary is hosted on jcenter so you could just add the line:
+The build is hosted on jcenter so you could just add the line:
 
 ```
-implementation 'com.byteshaft.requests:requests:0.5.2'
+implementation 'pk.codebase.requestsj:requestsj:0.8.0'
 ```
 
 # Usage
 ```java
-HttpRequest request = new HttpRequest(context);
-request.setOnReadyStateChangeListener(new HttpRequest.OnReadyStateChangeListener() {
+public class MainActivity extends AppCompatActivity {
+
     @Override
-    public void onReadyStateChange(HttpRequest request, int readyState) {
-        switch (readyState) {
-            case HttpRequest.STATE_DONE:
-                switch (request.getStatus()) {
-                    case HttpURLConnection.HTTP_OK:
-                        // Request successful
-                        break;
-                    case HttpURLConnection.HTTP_BAD_REQUEST:
-                        // Something was wrong
-                        request.getResponseText();
-                        request.getStatusText();
-                        break;
-                }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        HttpRequest request = new HttpRequest();
+        request.setOnResponseListener(this::onResponse);
+        request.setOnErrorListener(this::onError);
+        request.get("https://httpbin.org/get");
+    }
+
+    private void onResponse(HttpResponse response) {
+        if (response.code == HttpRequest.HTTP_OK) {
+            System.out.println(response.json());
         }
     }
-});
-request.open("POST", URL);
-request.send(JsonString);
-```
 
-Note: this document is still WIP.
+    private void onError(HttpError error) {
+        if (error.code == HttpError.NETWORK_UNREACHABLE) {
+            Toast.makeText(this, "Internet Not Available!", Toast.LENGTH_SHORT).show();
+        }
+    }
+}
+```

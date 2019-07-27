@@ -24,6 +24,6 @@ android {
 }
 
 dependencies {
-    implementation project(path: ':requests')
+    implementation project(path: ':requestsj')
     implementation 'androidx.appcompat:appcompat:1.0.2'
 }

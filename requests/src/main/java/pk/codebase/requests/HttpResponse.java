@@ -25,16 +25,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
-public class HTTPResponse {
+public class HttpResponse {
 
-    private static final String TAG = HTTPResponse.class.getName();
+    private static final String TAG = HttpResponse.class.getName();
 
     public final int code;
     public final String reason;
     public final String text;
     public final String url;
 
-    public HTTPResponse(int code, String reason, String text, String url) {
+    public HttpResponse(int code, String reason, String text, String url) {
         this.code = code;
         this.reason = reason;
         this.text = text;

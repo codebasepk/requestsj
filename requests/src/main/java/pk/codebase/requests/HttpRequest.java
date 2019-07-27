@@ -24,13 +24,12 @@ import android.os.Looper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HTTPRequest {
+public class HttpRequest {
 
     // Stole from HttpURLConnection
     public static final int HTTP_ACCEPTED = 202;
@@ -69,7 +68,7 @@ public class HTTPRequest {
     public static final int HTTP_USE_PROXY = 305;
     public static final int HTTP_VERSION = 505;
 
-    private static final String TAG = HTTPRequest.class.getName();
+    private static final String TAG = HttpRequest.class.getName();
 
     private final String CONTENT_TYPE_JSON = "application/json";
     private final String CONTENT_TYPE_FORM = String.format(
@@ -84,22 +83,22 @@ public class HTTPRequest {
     private Handler mHandler;
     private Map<String, String> mHeaders;
 
-    public HTTPRequest() {
+    public HttpRequest() {
         mHandler = new Handler(Looper.getMainLooper());
         mThread = Executors.newSingleThreadExecutor();
         mHeaders = new HashMap<>();
     }
 
     public interface OnErrorListener {
-        void onError(HTTPError error);
+        void onError(HttpError error);
     }
 
     public interface OnFileUploadProgressListener {
-        void onFileUploadProgress(File file, long uploaded, long total);
+        void onFileUploadProgress(HttpUploadProgress progress);
     }
 
     public interface OnResponseListener {
-        void onResponse(HTTPResponse response);
+        void onResponse(HttpResponse response);
     }
 
     public void setOnErrorListener(OnErrorListener listener) {
@@ -115,8 +114,8 @@ public class HTTPRequest {
     }
 
     private void request(String method, String url, Object payload, Map<String, String> headers,
-                         HTTPOptions options) {
-        HTTP http = new HTTP();
+                         HttpOptions options) {
+        HttpBase http = new HttpBase();
         http.setUploadProgressListener(this::emitOnFileUploadProgress);
         Map<String, String> actualHeaders = headers;
         if (actualHeaders == null) {
@@ -132,38 +131,38 @@ public class HTTPRequest {
             }
         }
         try {
-            HTTPResponse response = http.request(method, url, payload, actualHeaders,
+            HttpResponse response = http.request(method, url, payload, actualHeaders,
                     options.connectTimeout, options.readTimeout);
             emitOnResponse(response);
-        } catch (HTTPError error) {
+        } catch (HttpError error) {
             emitOnError(error);
         } catch (Exception e) {
-            emitOnError(new HTTPError(HTTPError.UNKNOWN, HTTPError.STAGE_UNKNOWN, e));
+            emitOnError(new HttpError(HttpError.UNKNOWN, HttpError.STAGE_UNKNOWN, e));
         }
     }
 
-    private void actuallyGet(String url, Map<String, String> headers, HTTPOptions options) {
+    private void actuallyGet(String url, Map<String, String> headers, HttpOptions options) {
         mThread.submit(() -> request("GET", url, null, headers, options));
     }
 
     public void get(String url) {
-        actuallyGet(url, null, new HTTPOptions());
+        actuallyGet(url, null, new HttpOptions());
     }
 
     public void get(String url, Map<String, String> headers) {
-        actuallyGet(url, headers, new HTTPOptions());
+        actuallyGet(url, headers, new HttpOptions());
     }
 
-    public void get(String url, HTTPOptions options) {
+    public void get(String url, HttpOptions options) {
         actuallyGet(url, null, options);
     }
 
-    public void get(String url, Map<String, String> headers, HTTPOptions options) {
+    public void get(String url, Map<String, String> headers, HttpOptions options) {
         actuallyGet(url, headers, options);
     }
 
     private void actuallyPost(String url, Object payload, Map<String, String> headers,
-                              HTTPOptions options) {
+                              HttpOptions options) {
         if (!headers.containsKey("Content-Type") || !headers.containsKey("content-type")) {
             headers.put("Content-Type", CONTENT_TYPE_JSON);
         }
@@ -171,72 +170,71 @@ public class HTTPRequest {
     }
 
     public void post(String url, String payload) {
-        actuallyPost(url, payload, new HashMap<>(), new HTTPOptions());
+        actuallyPost(url, payload, new HashMap<>(), new HttpOptions());
     }
 
     public void post(String url, String payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HTTPOptions());
+        actuallyPost(url, payload, headers, new HttpOptions());
     }
 
     public void post(String url, FormData payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HTTPOptions());
+        actuallyPost(url, payload, headers, new HttpOptions());
     }
 
      public void post(String url, JSONObject payload, Map<String, String> headers) {
-         actuallyPost(url, payload, headers, new HTTPOptions());
+         actuallyPost(url, payload, headers, new HttpOptions());
     }
 
      public void post(String url, JSONArray payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HTTPOptions());
+        actuallyPost(url, payload, headers, new HttpOptions());
     }
 
-     public void post(String url, Object pojo, Map<String, String> headers, HTTPOptions options) {
+     public void post(String url, Object pojo, Map<String, String> headers, HttpOptions options) {
          actuallyPost(url, pojo, headers, options);
     }
 
     private void actuallyDelete(String url, Object payload, Map<String, String> headers,
-                                HTTPOptions options) {
+                                HttpOptions options) {
         mThread.submit(() -> request("DELETE", url, payload, headers, options));
     }
 
     public void delete(String url, Object payload, Map<String, String> headers,
-                       HTTPOptions options) {
+                       HttpOptions options) {
         actuallyDelete(url, payload, headers, options);
     }
 
     private void actuallyPut(String url, Object payload, Map<String, String> headers,
-                                HTTPOptions options) {
+                                HttpOptions options) {
         mThread.submit(() -> request("PUT", url, payload, headers, options));
     }
 
-    public void put(String url, Object payload, Map<String, String> headers, HTTPOptions options) {
+    public void put(String url, Object payload, Map<String, String> headers, HttpOptions options) {
         actuallyPut(url, payload, headers, options);
     }
 
     private void actuallyPatch(String url, Object payload, Map<String, String> headers,
-                             HTTPOptions options) {
+                             HttpOptions options) {
         mThread.submit(() -> request("PATCH", url, payload, headers, options));
     }
 
     public void patch(String url, Object payload, Map<String, String> headers,
-                      HTTPOptions options) {
+                      HttpOptions options) {
         actuallyPatch(url, payload, headers, options);
     }
 
-    private void emitOnResponse(HTTPResponse response) {
+    private void emitOnResponse(HttpResponse response) {
         if (mOnResponseListener != null) {
             mHandler.post(() -> mOnResponseListener.onResponse(response));
         }
     }
 
-    private void emitOnFileUploadProgress(File file, long loaded, long total) {
+    private void emitOnFileUploadProgress(HttpUploadProgress progress) {
         if (mOnFileUploadProgressListener != null) {
-            mHandler.post(() -> mOnFileUploadProgressListener.onFileUploadProgress(
-                    file, loaded, total));
+            mHandler.post(() -> mOnFileUploadProgressListener.onFileUploadProgress(progress));
         }
     }
 
-    private void emitOnError(HTTPError error) {
+    private void emitOnError(HttpError error) {
         if (mOnErrorListener != null) {
             mHandler.post(() -> mOnErrorListener.onError(error));
         }

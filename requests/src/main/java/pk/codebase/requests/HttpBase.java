@@ -43,38 +43,37 @@ import java.util.Map;
 
 import javax.net.ssl.SSLHandshakeException;
 
-import static pk.codebase.requests.HTTPError.CANNOT_SERIALIZE;
-import static pk.codebase.requests.HTTPError.CONNECTION_REFUSED;
-import static pk.codebase.requests.HTTPError.CONNECTION_TIMED_OUT;
-import static pk.codebase.requests.HTTPError.FILE_DOES_NOT_EXIST;
-import static pk.codebase.requests.HTTPError.FILE_READ_PERMISSION_DENIED;
-import static pk.codebase.requests.HTTPError.INVALID_REQUEST_METHOD;
-import static pk.codebase.requests.HTTPError.INVALID_URL;
-import static pk.codebase.requests.HTTPError.LOST_CONNECTION;
-import static pk.codebase.requests.HTTPError.NETWORK_UNREACHABLE;
-import static pk.codebase.requests.HTTPError.SSL_CERTIFICATE_INVALID;
-import static pk.codebase.requests.HTTPError.STAGE_CLEANING;
-import static pk.codebase.requests.HTTPError.STAGE_CONNECTING;
-import static pk.codebase.requests.HTTPError.STAGE_RECEIVING;
-import static pk.codebase.requests.HTTPError.STAGE_SENDING;
-import static pk.codebase.requests.HTTPError.UNKNOWN;
+import static pk.codebase.requests.HttpError.CANNOT_SERIALIZE;
+import static pk.codebase.requests.HttpError.CONNECTION_REFUSED;
+import static pk.codebase.requests.HttpError.CONNECTION_TIMED_OUT;
+import static pk.codebase.requests.HttpError.FILE_DOES_NOT_EXIST;
+import static pk.codebase.requests.HttpError.FILE_READ_PERMISSION_DENIED;
+import static pk.codebase.requests.HttpError.INVALID_REQUEST_METHOD;
+import static pk.codebase.requests.HttpError.INVALID_URL;
+import static pk.codebase.requests.HttpError.LOST_CONNECTION;
+import static pk.codebase.requests.HttpError.NETWORK_UNREACHABLE;
+import static pk.codebase.requests.HttpError.SSL_CERTIFICATE_INVALID;
+import static pk.codebase.requests.HttpError.STAGE_CLEANING;
+import static pk.codebase.requests.HttpError.STAGE_CONNECTING;
+import static pk.codebase.requests.HttpError.STAGE_RECEIVING;
+import static pk.codebase.requests.HttpError.STAGE_SENDING;
+import static pk.codebase.requests.HttpError.UNKNOWN;
 
-class HTTP {
+class HttpBase {
 
-    private static final String TAG = HTTP.class.getName();
+    private static final String TAG = HttpBase.class.getName();
 
     private HttpURLConnection mConn;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
-    private int mFilesCount;
-    private int mCurrentFileNumber;
     private String mStatusText;
     private String mResponseText;
     private short mStatus;
-    private HTTPRequest.OnFileUploadProgressListener mFileProgressListener;
+    private HttpRequest.OnFileUploadProgressListener mFileProgressListener;
+    private HttpUploadProgress mUploadProgress;
 
-    HTTPResponse request(String method, String url, Object payloadRaw, Map<String, String> headers,
-                         int connectTimeout, int readTimeout) throws HTTPError {
+    HttpResponse request(String method, String url, Object payloadRaw, Map<String, String> headers,
+                         int connectTimeout, int readTimeout) throws HttpError {
         int payloadLength = 0;
         Object payload = payloadRaw;
         if (payloadRaw != null) {
@@ -88,7 +87,7 @@ class HTTP {
                     payloadLength = pojoPayload.getBytes().length;
                     payload = pojoPayload;
                 } catch (JsonProcessingException e) {
-                    throw new HTTPError(CANNOT_SERIALIZE, STAGE_CONNECTING, e);
+                    throw new HttpError(CANNOT_SERIALIZE, STAGE_CONNECTING, e);
                 }
             }
         }
@@ -96,16 +95,16 @@ class HTTP {
         send(payload);
         readResponse();
         cleanup();
-        return new HTTPResponse(mStatus, mStatusText, mResponseText, url);
+        return new HttpResponse(mStatus, mStatusText, mResponseText, url);
     }
 
-    void setUploadProgressListener(HTTPRequest.OnFileUploadProgressListener listener) {
+    void setUploadProgressListener(HttpRequest.OnFileUploadProgressListener listener) {
         mFileProgressListener = listener;
     }
 
     private void connect(String method, String endpoint, int payloadLength,
                          Map<String, String> headers, int connectTimeout, int readTimeout)
-            throws HTTPError {
+            throws HttpError {
         try {
             URL url = new URL(endpoint);
             mConn = (HttpURLConnection) url.openConnection();
@@ -119,36 +118,36 @@ class HTTP {
             mConn.connect();
         } catch (IOException e) {
             if (e instanceof MalformedURLException) {
-                throw new HTTPError(INVALID_URL, STAGE_CONNECTING, e);
+                throw new HttpError(INVALID_URL, STAGE_CONNECTING, e);
             } else if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
-                    throw new HTTPError(CONNECTION_REFUSED,
+                    throw new HttpError(CONNECTION_REFUSED,
                             STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ENETUNREACH")) {
-                    throw new HTTPError(NETWORK_UNREACHABLE,
+                    throw new HttpError(NETWORK_UNREACHABLE,
                             STAGE_CONNECTING, e);
                 } else if (e.getMessage().contains("ETIMEDOUT")) {
-                    throw new HTTPError(CONNECTION_TIMED_OUT,
+                    throw new HttpError(CONNECTION_TIMED_OUT,
                             STAGE_CONNECTING, e);
                 } else {
-                    throw new HTTPError(UNKNOWN, STAGE_CONNECTING, e);
+                    throw new HttpError(UNKNOWN, STAGE_CONNECTING, e);
                 }
             } else if (e instanceof SSLHandshakeException) {
-                throw new HTTPError(SSL_CERTIFICATE_INVALID,
+                throw new HttpError(SSL_CERTIFICATE_INVALID,
                         STAGE_CONNECTING, e);
             } else if (e instanceof SocketException) {
-                throw new HTTPError(LOST_CONNECTION, STAGE_CONNECTING, e);
+                throw new HttpError(LOST_CONNECTION, STAGE_CONNECTING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_CONNECTING, e);
+                throw new HttpError(CONNECTION_TIMED_OUT, STAGE_CONNECTING, e);
             } else if (e instanceof ProtocolException) {
-                throw new HTTPError(INVALID_REQUEST_METHOD, STAGE_CONNECTING, e);
+                throw new HttpError(INVALID_REQUEST_METHOD, STAGE_CONNECTING, e);
             } else {
-                throw new HTTPError(UNKNOWN, STAGE_CONNECTING, e);
+                throw new HttpError(UNKNOWN, STAGE_CONNECTING, e);
             }
         }
     }
 
-    private void send(Object payload) throws HTTPError {
+    private void send(Object payload) throws HttpError {
         if (payload instanceof FormData) {
             sendRequest((FormData) payload);
         } else {
@@ -156,21 +155,23 @@ class HTTP {
         }
     }
 
-    private void sendRequest(String data) throws HTTPError {
+    private void sendRequest(String data) throws HttpError {
         if (data != null) {
             sendRequestData(data);
         }
     }
 
-    private void sendRequest(FormData data) throws HTTPError {
-        mFilesCount = data.getFilesCount();
+    private void sendRequest(FormData data) throws HttpError {
+        mUploadProgress = new HttpUploadProgress(data.getFilesCount());
+        int currentFileNumber = 0;
         ArrayList<FormData.MultiPartData> requestItems = data.getData();
         for (FormData.MultiPartData item : requestItems) {
             sendRequestData(item.getPreContentData());
             if (item.getContentType() == FormData.TYPE_CONTENT_TEXT) {
                 sendRequestData(item.getContent());
             } else {
-                mCurrentFileNumber += 1;
+                currentFileNumber += 1;
+                mUploadProgress.setCurrentNumber(currentFileNumber);
                 writeContent(item.getContent());
             }
             sendRequestData(item.getPostContentData());
@@ -178,7 +179,7 @@ class HTTP {
         sendRequestData(FormData.FINISH_LINE);
     }
 
-    private void cleanup() throws HTTPError {
+    private void cleanup() throws HttpError {
         try {
             if (mOutputStream != null) {
                 mOutputStream.flush();
@@ -188,12 +189,12 @@ class HTTP {
                 mInputStream.close();
             }
         } catch (IOException e) {
-            throw new HTTPError(UNKNOWN, STAGE_CLEANING, e);
+            throw new HttpError(UNKNOWN, STAGE_CLEANING, e);
         }
         mConn.disconnect();
     }
 
-    private void readResponse() throws HTTPError {
+    private void readResponse() throws HttpError {
         assignResponseCodeAndMessage();
         try {
             mInputStream = mConn.getInputStream();
@@ -203,7 +204,7 @@ class HTTP {
         readFromInputStream();
     }
 
-    private void assignResponseCodeAndMessage() throws HTTPError {
+    private void assignResponseCodeAndMessage() throws HttpError {
         try {
             Log.v(TAG, "Getting response headers");
             mStatus = (short) mConn.getResponseCode();
@@ -211,16 +212,16 @@ class HTTP {
             mStatusText = mConn.getResponseMessage();
         } catch (IOException e) {
             if (e instanceof SocketException) {
-                throw new HTTPError(LOST_CONNECTION, STAGE_RECEIVING, e);
+                throw new HttpError(LOST_CONNECTION, STAGE_RECEIVING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_RECEIVING, e);
+                throw new HttpError(CONNECTION_TIMED_OUT, STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(UNKNOWN, STAGE_RECEIVING, e);
+                throw new HttpError(UNKNOWN, STAGE_RECEIVING, e);
             }
         }
     }
 
-    private void readFromInputStream() throws HTTPError {
+    private void readFromInputStream() throws HttpError {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(mInputStream));
             StringBuilder output = new StringBuilder();
@@ -231,14 +232,14 @@ class HTTP {
             mResponseText = output.toString();
         } catch (IOException e) {
             if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(LOST_CONNECTION, STAGE_RECEIVING, e);
+                throw new HttpError(LOST_CONNECTION, STAGE_RECEIVING, e);
             } else {
-                throw new HTTPError(UNKNOWN, STAGE_RECEIVING, e);
+                throw new HttpError(UNKNOWN, STAGE_RECEIVING, e);
             }
         }
     }
 
-    private void sendRequestData(String body) throws HTTPError {
+    private void sendRequestData(String body) throws HttpError {
         try {
             byte[] outputInBytes = body.getBytes();
             if (mOutputStream == null) {
@@ -250,16 +251,16 @@ class HTTP {
             mOutputStream.flush();
         } catch (IOException e) {
             if (e instanceof SocketException) {
-                throw new HTTPError(LOST_CONNECTION, STAGE_SENDING, e);
+                throw new HttpError(LOST_CONNECTION, STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
+                throw new HttpError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
             } else {
-                throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
+                throw new HttpError(UNKNOWN, STAGE_SENDING, e);
             }
         }
     }
 
-    private void writeContent(String uploadFilePath) throws HTTPError {
+    private void writeContent(String uploadFilePath) throws HttpError {
         File uploadFile = new File(uploadFilePath);
         long total = uploadFile.length();
         long uploaded = 0;
@@ -275,25 +276,28 @@ class HTTP {
                 mOutputStream.flush();
                 uploaded += bytesRead;
                 if (mFileProgressListener != null) {
-                    mFileProgressListener.onFileUploadProgress(uploadFile, uploaded, total);
+                    mUploadProgress.setCurrentFile(uploadFile);
+                    mUploadProgress.setUpload(uploaded);
+                    mUploadProgress.setTotal(total);
+                    mFileProgressListener.onFileUploadProgress(mUploadProgress);
                 }
             }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 if (e.getMessage().contains("ENOENT")) {
-                    throw new HTTPError(FILE_DOES_NOT_EXIST, STAGE_SENDING, e);
+                    throw new HttpError(FILE_DOES_NOT_EXIST, STAGE_SENDING, e);
                 } else if (e.getMessage().contains("EACCES")) {
-                    throw new HTTPError(FILE_READ_PERMISSION_DENIED,
+                    throw new HttpError(FILE_READ_PERMISSION_DENIED,
                             STAGE_SENDING, e);
                 } else {
-                    throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
+                    throw new HttpError(UNKNOWN, STAGE_SENDING, e);
                 }
             } else if (e instanceof SocketException) {
-                throw new HTTPError(LOST_CONNECTION, STAGE_SENDING, e);
+                throw new HttpError(LOST_CONNECTION, STAGE_SENDING, e);
             } else if (e instanceof SocketTimeoutException) {
-                throw new HTTPError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
+                throw new HttpError(CONNECTION_TIMED_OUT, STAGE_SENDING, e);
             } else {
-                throw new HTTPError(UNKNOWN, STAGE_SENDING, e);
+                throw new HttpError(UNKNOWN, STAGE_SENDING, e);
             }
         }
     }

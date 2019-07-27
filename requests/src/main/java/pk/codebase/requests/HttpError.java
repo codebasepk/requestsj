@@ -18,7 +18,7 @@
 
 package pk.codebase.requests;
 
-public class HTTPError extends Exception {
+public class HttpError extends Exception {
 
     public static final short STAGE_UNKNOWN = 0;
     public static final short STAGE_CONNECTING = 1;
@@ -42,7 +42,7 @@ public class HTTPError extends Exception {
     public final short stage;
     public final String reason;
 
-    public HTTPError(short code, short stage, Throwable cause) {
+    public HttpError(short code, short stage, Throwable cause) {
         super(cause);
         this.code = code;
         this.stage = stage;

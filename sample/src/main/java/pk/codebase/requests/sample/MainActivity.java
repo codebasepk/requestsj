@@ -22,12 +22,12 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import pk.codebase.requests.HTTPError;
-import pk.codebase.requests.HTTPRequest;
-import pk.codebase.requests.HTTPResponse;
+import pk.codebase.requests.HttpError;
+import pk.codebase.requests.HttpRequest;
+import pk.codebase.requests.HttpResponse;
 
-public class MainActivity extends AppCompatActivity implements HTTPRequest.OnResponseListener,
-        HTTPRequest.OnErrorListener {
+public class MainActivity extends AppCompatActivity implements HttpRequest.OnResponseListener,
+        HttpRequest.OnErrorListener {
 
     private final String URL_GET = "https://httpbin.org/get";
     private final String URL_POST = "https://httpbin.org/post";
@@ -39,14 +39,14 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        HTTPRequest request = new HTTPRequest();
+        HttpRequest request = new HttpRequest();
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
         request.get(URL_GET);
     }
 
     @Override
-    public void onError(HTTPError error) {
+    public void onError(HttpError error) {
         System.out.println(error.code);
         System.out.println(error.reason);
         System.out.println(error.stage);
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements HTTPRequest.OnRes
     }
 
     @Override
-    public void onResponse(HTTPResponse response) {
+    public void onResponse(HttpResponse response) {
         System.out.println(response.text);
     }
 }

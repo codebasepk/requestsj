@@ -116,7 +116,12 @@ public class HttpRequest {
     private void request(String method, String url, Object payload, Map<String, String> headers,
                          HttpOptions options) {
         HttpBase http = new HttpBase();
-        http.setUploadProgressListener(this::emitOnFileUploadProgress);
+        http.setUploadProgressListener(new OnFileUploadProgressListener() {
+            @Override
+            public void onFileUploadProgress(HttpUploadProgress progress) {
+                emitOnFileUploadProgress(progress);
+            }
+        });
         Map<String, String> actualHeaders = headers;
         if (actualHeaders == null) {
             actualHeaders = new HashMap<>();
@@ -156,8 +161,14 @@ public class HttpRequest {
         get(url, null, options);
     }
 
-    public void get(String url, Map<String, String> headers, HttpOptions options) {
-        mThread.submit(() -> request("GET", url, null, headers, options));
+    public void get(final String url, final Map<String, String> headers,
+                    final HttpOptions options) {
+        mThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                request("GET", url, null, headers, options);
+            }
+        });
     }
 
     public void post(String url) {
@@ -184,8 +195,14 @@ public class HttpRequest {
         post(url, payload, null, options);
     }
 
-    public void post(String url, Object payload, Map<String, String> headers, HttpOptions options) {
-         mThread.submit(() -> request("POST", url, payload, headers, options));
+    public void post(final String url, final Object payload, final Map<String, String> headers,
+                     final HttpOptions options) {
+         mThread.submit(new Runnable() {
+             @Override
+             public void run() {
+                 request("POST", url, payload, headers, options);
+             }
+         });
     }
 
     public void put(String url) {
@@ -212,8 +229,14 @@ public class HttpRequest {
         put(url, payload, null, options);
     }
 
-    public void put(String url, Object payload, Map<String, String> headers, HttpOptions options) {
-        mThread.submit(() -> request("PUT", url, payload, headers, options));
+    public void put(final String url, final Object payload, final Map<String, String> headers,
+                    final HttpOptions options) {
+        mThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                request("PUT", url, payload, headers, options);
+            }
+        });
     }
 
     public void patch(String url) {
@@ -240,9 +263,14 @@ public class HttpRequest {
         patch(url, payload, null, options);
     }
 
-    public void patch(String url, Object payload, Map<String, String> headers,
-                      HttpOptions options) {
-        mThread.submit(() -> request("PATCH", url, payload, headers, options));
+    public void patch(final String url, final Object payload, final Map<String, String> headers,
+                      final HttpOptions options) {
+        mThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                request("PATCH", url, payload, headers, options);
+            }
+        });
     }
 
     public void delete(String url) {
@@ -269,26 +297,46 @@ public class HttpRequest {
         delete(url, payload, null, options);
     }
 
-    public void delete(String url, Object payload, Map<String, String> headers,
-                       HttpOptions options) {
-        mThread.submit(() -> request("DELETE", url, payload, headers, options));
+    public void delete(final String url, final Object payload, final Map<String, String> headers,
+                       final HttpOptions options) {
+        mThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                request("DELETE", url, payload, headers, options);
+            }
+        });
     }
 
-    private void emitOnResponse(HttpResponse response) {
+    private void emitOnResponse(final HttpResponse response) {
         if (mOnResponseListener != null) {
-            mHandler.post(() -> mOnResponseListener.onResponse(response));
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mOnResponseListener.onResponse(response);
+                }
+            });
         }
     }
 
-    private void emitOnFileUploadProgress(HttpUploadProgress progress) {
+    private void emitOnFileUploadProgress(final HttpUploadProgress progress) {
         if (mOnFileUploadProgressListener != null) {
-            mHandler.post(() -> mOnFileUploadProgressListener.onFileUploadProgress(progress));
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mOnFileUploadProgressListener.onFileUploadProgress(progress);
+                }
+            });
         }
     }
 
-    private void emitOnError(HttpError error) {
+    private void emitOnError(final HttpError error) {
         if (mOnErrorListener != null) {
-            mHandler.post(() -> mOnErrorListener.onError(error));
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mOnErrorListener.onError(error);
+                }
+            });
         }
     }
 }

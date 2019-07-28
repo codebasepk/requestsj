@@ -121,6 +121,10 @@ public class HttpRequest {
         if (actualHeaders == null) {
             actualHeaders = new HashMap<>();
         }
+        HttpOptions actualOptions = options;
+        if (actualOptions == null) {
+            actualOptions = new HttpOptions();
+        }
         if (!method.equals("GET")) {
             if (payload instanceof FormData) {
                 actualHeaders.put("Content-Type", CONTENT_TYPE_FORM);
@@ -131,7 +135,7 @@ public class HttpRequest {
         }
         try {
             HttpResponse response = http.request(method, url, payload, actualHeaders,
-                    options.connectTimeout, options.readTimeout);
+                    actualOptions.connectTimeout, actualOptions.readTimeout);
             emitOnResponse(response);
         } catch (HttpError error) {
             emitOnError(error);
@@ -140,94 +144,134 @@ public class HttpRequest {
         }
     }
 
-    private void actuallyGet(String url, Map<String, String> headers, HttpOptions options) {
-        mThread.submit(() -> request("GET", url, null, headers, options));
-    }
-
     public void get(String url) {
-        actuallyGet(url, null, new HttpOptions());
+        get(url, null, null);
     }
 
     public void get(String url, Map<String, String> headers) {
-        actuallyGet(url, headers, new HttpOptions());
+        get(url, headers, null);
     }
 
     public void get(String url, HttpOptions options) {
-        actuallyGet(url, null, options);
+        get(url, null, options);
     }
 
     public void get(String url, Map<String, String> headers, HttpOptions options) {
-        actuallyGet(url, headers, options);
-    }
-
-    private void actuallyPost(String url, Object payload, Map<String, String> headers,
-                              HttpOptions options) {
-        mThread.submit(() -> request("POST", url, payload, headers, options));
+        mThread.submit(() -> request("GET", url, null, headers, options));
     }
 
     public void post(String url) {
-        actuallyPost(url, null, new HashMap<>(), new HttpOptions());
-    }
-
-    public void post(String url, String payload) {
-        actuallyPost(url, payload, new HashMap<>(), new HttpOptions());
+        post(url, null, null, null);
     }
 
     public void post(String url, Map<String, String> headers) {
-        actuallyPost(url, null, headers, new HttpOptions());
+        post(url, null, headers, null);
     }
 
     public void post(String url, HttpOptions options) {
-        actuallyPost(url, null, new HashMap<>(), options);
+        post(url, null, null, options);
     }
 
-    public void post(String url, String payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HttpOptions());
+    public void post(String url, Object payload) {
+        post(url, payload, null, null);
     }
 
-    public void post(String url, FormData payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HttpOptions());
+    public void post(String url, Object payload, Map<String, String> headers) {
+        post(url, payload, headers, null);
     }
 
-     public void post(String url, JSONObject payload, Map<String, String> headers) {
-         actuallyPost(url, payload, headers, new HttpOptions());
+    public void post(String url, Object payload, HttpOptions options) {
+        post(url, payload, null, options);
     }
 
-     public void post(String url, JSONArray payload, Map<String, String> headers) {
-        actuallyPost(url, payload, headers, new HttpOptions());
+    public void post(String url, Object payload, Map<String, String> headers, HttpOptions options) {
+         mThread.submit(() -> request("POST", url, payload, headers, options));
     }
 
-     public void post(String url, Object pojo, Map<String, String> headers, HttpOptions options) {
-         actuallyPost(url, pojo, headers, options);
+    public void put(String url) {
+        put(url, null, null, null);
     }
 
-    private void actuallyDelete(String url, Object payload, Map<String, String> headers,
-                                HttpOptions options) {
-        mThread.submit(() -> request("DELETE", url, payload, headers, options));
+    public void put(String url, Map<String, String> headers) {
+        put(url, null, headers, null);
     }
 
-    public void delete(String url, Object payload, Map<String, String> headers,
-                       HttpOptions options) {
-        actuallyDelete(url, payload, headers, options);
+    public void put(String url, HttpOptions options) {
+        put(url, null, null, options);
     }
 
-    private void actuallyPut(String url, Object payload, Map<String, String> headers,
-                                HttpOptions options) {
-        mThread.submit(() -> request("PUT", url, payload, headers, options));
+    public void put(String url, Object payload) {
+        put(url, payload, null, null);
+    }
+
+    public void put(String url, Object payload, Map<String, String> headers) {
+        put(url, payload, headers, null);
+    }
+
+    public void put(String url, Object payload, HttpOptions options) {
+        put(url, payload, null, options);
     }
 
     public void put(String url, Object payload, Map<String, String> headers, HttpOptions options) {
-        actuallyPut(url, payload, headers, options);
+        mThread.submit(() -> request("PUT", url, payload, headers, options));
     }
 
-    private void actuallyPatch(String url, Object payload, Map<String, String> headers,
-                             HttpOptions options) {
-        mThread.submit(() -> request("PATCH", url, payload, headers, options));
+    public void patch(String url) {
+        patch(url, null, null, null);
+    }
+
+    public void patch(String url, Map<String, String> headers) {
+        patch(url, null, headers, null);
+    }
+
+    public void patch(String url, HttpOptions options) {
+        patch(url, null, null, options);
+    }
+
+    public void patch(String url, Object payload) {
+        patch(url, payload, null, null);
+    }
+
+    public void patch(String url, Object payload, Map<String, String> headers) {
+        patch(url, payload, headers, null);
+    }
+
+    public void patch(String url, Object payload, HttpOptions options) {
+        patch(url, payload, null, options);
     }
 
     public void patch(String url, Object payload, Map<String, String> headers,
                       HttpOptions options) {
-        actuallyPatch(url, payload, headers, options);
+        mThread.submit(() -> request("PATCH", url, payload, headers, options));
+    }
+
+    public void delete(String url) {
+        delete(url, null, null, null);
+    }
+
+    public void delete(String url, Map<String, String> headers) {
+        delete(url, null, headers, null);
+    }
+
+    public void delete(String url, HttpOptions options) {
+        delete(url, null, null, options);
+    }
+
+    public void delete(String url, Object payload) {
+        delete(url, payload, null, null);
+    }
+
+    public void delete(String url, Object payload, Map<String, String> headers) {
+        delete(url, payload, headers, null);
+    }
+
+    public void delete(String url, Object payload, HttpOptions options) {
+        delete(url, payload, null, options);
+    }
+
+    public void delete(String url, Object payload, Map<String, String> headers,
+                       HttpOptions options) {
+        mThread.submit(() -> request("DELETE", url, payload, headers, options));
     }
 
     private void emitOnResponse(HttpResponse response) {

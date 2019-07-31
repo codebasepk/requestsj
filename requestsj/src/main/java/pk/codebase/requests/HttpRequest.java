@@ -117,7 +117,7 @@ public class HttpRequest {
         mOnResponseListener = listener;
     }
 
-    private void request(String method, String rawURL, Object payload, Map<String, String> headers,
+    private void request(String method, String rawURL, Object payload, HttpHeaders headers,
                          HttpOptions options) {
         String url = rawURL;
         if (url != null) {
@@ -169,7 +169,7 @@ public class HttpRequest {
         get(url, null, null);
     }
 
-    public void get(String url, Map<String, String> headers) {
+    public void get(String url, HttpHeaders headers) {
         get(url, headers, null);
     }
 
@@ -177,7 +177,7 @@ public class HttpRequest {
         get(url, null, options);
     }
 
-    public void get(final String url, final Map<String, String> headers,
+    public void get(final String url, final HttpHeaders headers,
                     final HttpOptions options) {
         mThread.submit(new Runnable() {
             @Override
@@ -191,7 +191,7 @@ public class HttpRequest {
         post(url, null, null, null);
     }
 
-    public void post(String url, Map<String, String> headers) {
+    public void post(String url, HttpHeaders headers) {
         post(url, null, headers, null);
     }
 
@@ -203,7 +203,7 @@ public class HttpRequest {
         post(url, payload, null, null);
     }
 
-    public void post(String url, Object payload, Map<String, String> headers) {
+    public void post(String url, Object payload, HttpHeaders headers) {
         post(url, payload, headers, null);
     }
 
@@ -211,7 +211,7 @@ public class HttpRequest {
         post(url, payload, null, options);
     }
 
-    public void post(final String url, final Object payload, final Map<String, String> headers,
+    public void post(final String url, final Object payload, final HttpHeaders headers,
                      final HttpOptions options) {
          mThread.submit(new Runnable() {
              @Override
@@ -225,7 +225,7 @@ public class HttpRequest {
         put(url, null, null, null);
     }
 
-    public void put(String url, Map<String, String> headers) {
+    public void put(String url, HttpHeaders headers) {
         put(url, null, headers, null);
     }
 
@@ -237,7 +237,7 @@ public class HttpRequest {
         put(url, payload, null, null);
     }
 
-    public void put(String url, Object payload, Map<String, String> headers) {
+    public void put(String url, Object payload, HttpHeaders headers) {
         put(url, payload, headers, null);
     }
 
@@ -245,7 +245,7 @@ public class HttpRequest {
         put(url, payload, null, options);
     }
 
-    public void put(final String url, final Object payload, final Map<String, String> headers,
+    public void put(final String url, final Object payload, final HttpHeaders headers,
                     final HttpOptions options) {
         mThread.submit(new Runnable() {
             @Override
@@ -259,7 +259,7 @@ public class HttpRequest {
         patch(url, null, null, null);
     }
 
-    public void patch(String url, Map<String, String> headers) {
+    public void patch(String url, HttpHeaders headers) {
         patch(url, null, headers, null);
     }
 
@@ -271,7 +271,7 @@ public class HttpRequest {
         patch(url, payload, null, null);
     }
 
-    public void patch(String url, Object payload, Map<String, String> headers) {
+    public void patch(String url, Object payload, HttpHeaders headers) {
         patch(url, payload, headers, null);
     }
 
@@ -279,7 +279,7 @@ public class HttpRequest {
         patch(url, payload, null, options);
     }
 
-    public void patch(final String url, final Object payload, final Map<String, String> headers,
+    public void patch(final String url, final Object payload, final HttpHeaders headers,
                       final HttpOptions options) {
         mThread.submit(new Runnable() {
             @Override
@@ -293,7 +293,7 @@ public class HttpRequest {
         delete(url, null, null, null);
     }
 
-    public void delete(String url, Map<String, String> headers) {
+    public void delete(String url, HttpHeaders headers) {
         delete(url, null, headers, null);
     }
 
@@ -305,7 +305,7 @@ public class HttpRequest {
         delete(url, payload, null, null);
     }
 
-    public void delete(String url, Object payload, Map<String, String> headers) {
+    public void delete(String url, Object payload, HttpHeaders headers) {
         delete(url, payload, headers, null);
     }
 
@@ -313,7 +313,7 @@ public class HttpRequest {
         delete(url, payload, null, options);
     }
 
-    public void delete(final String url, final Object payload, final Map<String, String> headers,
+    public void delete(final String url, final Object payload, final HttpHeaders headers,
                        final HttpOptions options) {
         mThread.submit(new Runnable() {
             @Override

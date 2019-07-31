@@ -29,20 +29,16 @@ import pk.codebase.requests.HttpResponse;
 public class MainActivity extends AppCompatActivity implements HttpRequest.OnResponseListener,
         HttpRequest.OnErrorListener {
 
-    private final String URL_GET = "https://httpbin.org/get";
-    private final String URL_POST = "https://httpbin.org/post";
-    private final String URL_PUT = "https://httpbin.org/put";
-    private final String URL_DELETE = "https://httpbin.org/delete";
-    private final String URL_PATCH = "https://httpbin.org/patch";
+    private final String URL_BASE = "https://httpbin.org";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        HttpRequest request = new HttpRequest();
+        HttpRequest request = new HttpRequest(URL_BASE);
         request.setOnResponseListener(this);
         request.setOnErrorListener(this);
-        request.get(URL_GET);
+        request.get("/get");
     }
 
     @Override

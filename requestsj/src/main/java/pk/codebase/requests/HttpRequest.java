@@ -81,12 +81,16 @@ public class HttpRequest {
 
     private ExecutorService mThread;
     private Handler mHandler;
-    private Map<String, String> mHeaders;
+    private final String mBaseURL;
 
     public HttpRequest() {
+        this("");
+    }
+
+    public HttpRequest(String baseURL) {
         mHandler = new Handler(Looper.getMainLooper());
         mThread = Executors.newSingleThreadExecutor();
-        mHeaders = new HashMap<>();
+        mBaseURL = baseURL;
     }
 
     public interface OnErrorListener {
@@ -113,8 +117,20 @@ public class HttpRequest {
         mOnResponseListener = listener;
     }
 
-    private void request(String method, String url, Object payload, Map<String, String> headers,
+    private void request(String method, String rawURL, Object payload, Map<String, String> headers,
                          HttpOptions options) {
+        String url = rawURL;
+        if (url != null) {
+            if (!url.startsWith("http") && !mBaseURL.isEmpty()) {
+                if (mBaseURL.endsWith("/") && url.startsWith("/")) {
+                    url = String.format("%s%s", mBaseURL, url.substring(1));
+                } else if (!mBaseURL.endsWith("/") && !url.startsWith("/")) {
+                    url = String.format("%s/%s", mBaseURL, url);
+                } else {
+                    url = String.format("%s%s", mBaseURL, url);
+                }
+            }
+        }
         HttpBase http = new HttpBase();
         http.setUploadProgressListener(new OnFileUploadProgressListener() {
             @Override

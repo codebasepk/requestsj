@@ -23,6 +23,9 @@ import android.util.Log;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -81,6 +84,14 @@ class HttpBase {
                 payloadLength = ((FormData) payloadRaw).getContentLength();
             } else if (payloadRaw instanceof String) {
                 payloadLength = ((String) payloadRaw).getBytes().length;
+            } else if (payloadRaw instanceof JSONObject) {
+                JSONObject obj = (JSONObject) payloadRaw;
+                payload = obj.toString();
+                payloadLength = ((String) payload).getBytes().length;
+            } else if (payloadRaw instanceof JSONArray) {
+                JSONArray obj = (JSONArray) payloadRaw;
+                payload = obj.toString();
+                payloadLength = ((String) payload).getBytes().length;
             } else {
                 try {
                     String pojoPayload = new ObjectMapper().writeValueAsString(payloadRaw);

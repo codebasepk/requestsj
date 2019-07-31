@@ -20,6 +20,7 @@ package pk.codebase.requests;
 
 import android.util.Log;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,6 +54,17 @@ public class HttpResponse {
     }
 
     public <T> T pojo(Class<T> expectedType) {
+        if (text != null) {
+            try {
+                return new ObjectMapper().readValue(text, expectedType);
+            } catch (IOException e) {
+                Log.d(TAG, e.getMessage(), e);
+            }
+        }
+        return null;
+    }
+
+    public <T> T pojo(TypeReference<T> expectedType) {
         if (text != null) {
             try {
                 return new ObjectMapper().readValue(text, expectedType);

@@ -105,11 +105,11 @@ public class FormData {
         mData.add(data);
     }
 
-    public void addItem(String name, String value) {
+    public void put(String name, String value) {
         append(TYPE_CONTENT_TEXT, name, value);
     }
 
-    public void addItem(String name, File file) {
+    public void put(String name, File file) {
         append(TYPE_CONTENT_FILE, name, file.getAbsolutePath());
     }
 

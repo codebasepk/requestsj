@@ -43,20 +43,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         HttpRequest request = new HttpRequest(URL_BASE);
-        request.setOnResponseListener(new HttpRequest.OnResponseListener() {
-            @Override
-            public void onResponse(HttpResponse response) {
-                if (response.code == HttpResponse.HTTP_OK) {
-                    JSONObject object = response.toJSONObject();
-                    System.out.println(object);
-                }
+        request.setOnResponseListener(response -> {
+            if (response.code == HttpResponse.HTTP_OK) {
+                JSONObject object = response.toJSONObject();
+                System.out.println(object.optString("sas"));
             }
         });
-        request.setOnErrorListener(new HttpRequest.OnErrorListener() {
-            @Override
-            public void onError(HttpError error) {
-                // There was an error, deal with it
-            }
+        request.setOnErrorListener(error -> {
+            // There was an error, deal with it
         });
         request.get("/get");
     }

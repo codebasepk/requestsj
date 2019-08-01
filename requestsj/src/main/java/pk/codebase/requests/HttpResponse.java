@@ -76,7 +76,7 @@ public class HttpResponse {
     public final String text;
     public final String url;
 
-    public HttpResponse(int code, String reason, String text, String url) {
+    HttpResponse(int code, String reason, String text, String url) {
         this.code = code;
         this.reason = reason;
         this.text = text;

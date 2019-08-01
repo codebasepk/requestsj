@@ -27,7 +27,7 @@ public class HttpFileUploadProgress {
     public int fileNumber;
     public int filesCount;
 
-    public HttpFileUploadProgress(int count) {
+    HttpFileUploadProgress(int count) {
         filesCount = count;
     }
 

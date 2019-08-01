@@ -43,13 +43,13 @@ public class HttpError extends Exception {
     public final short stage;
     public final String reason;
 
-    public HttpError(short stage, Throwable cause) {
+    HttpError(short stage, Throwable cause) {
         super(cause);
         this.stage = stage;
         this.reason = cause.getMessage();
     }
 
-    public HttpError(short code, short stage, Throwable cause) {
+    HttpError(short code, short stage, Throwable cause) {
         super(cause);
         this.code = code;
         this.stage = stage;

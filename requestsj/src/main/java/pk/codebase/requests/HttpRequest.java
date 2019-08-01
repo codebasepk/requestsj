@@ -95,9 +95,9 @@ public class HttpRequest {
                 emitOnFileUploadProgress(progress);
             }
         });
-        Map<String, String> actualHeaders = headers;
+        HttpHeaders actualHeaders = headers;
         if (actualHeaders == null) {
-            actualHeaders = new HashMap<>();
+            actualHeaders = new HttpHeaders();
         }
         HttpOptions actualOptions = options;
         if (actualOptions == null) {
@@ -112,9 +112,7 @@ public class HttpRequest {
             }
         }
         try {
-            HttpResponse response = http.request(method, url, payload, actualHeaders,
-                    actualOptions.connectTimeout, actualOptions.readTimeout);
-            emitOnResponse(response);
+            emitOnResponse(http.request(method, url, payload, actualHeaders, actualOptions));
         } catch (HttpError error) {
             emitOnError(error);
         } catch (Exception e) {

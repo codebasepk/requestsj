@@ -38,14 +38,24 @@ public class HttpError extends Exception {
     public static final short LOST_CONNECTION = 9;
     public static final short CANNOT_SERIALIZE = 10;
 
-    public final short code;
+    public short code = UNKNOWN;
     public final short stage;
     public final String reason;
+
+    public HttpError(short stage, Throwable cause) {
+        super(cause);
+        this.stage = stage;
+        this.reason = cause.getMessage();
+    }
 
     public HttpError(short code, short stage, Throwable cause) {
         super(cause);
         this.code = code;
         this.stage = stage;
         this.reason = cause.getMessage();
+    }
+
+    void setCode(short code) {
+        this.code = code;
     }
 }

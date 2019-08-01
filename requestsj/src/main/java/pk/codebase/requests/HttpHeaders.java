@@ -21,6 +21,11 @@ package pk.codebase.requests;
 import java.util.HashMap;
 
 public class HttpHeaders extends HashMap<String, String> {
+
+    public HttpHeaders() {
+        super();
+    }
+
     public HttpHeaders(String key, String value) {
         super();
         put(key, value);

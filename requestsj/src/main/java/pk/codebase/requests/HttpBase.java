@@ -18,6 +18,8 @@
 
 package pk.codebase.requests;
 
+import android.net.Uri;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -57,6 +59,7 @@ import static pk.codebase.requests.HttpError.STAGE_CLEANING;
 import static pk.codebase.requests.HttpError.STAGE_CONNECTING;
 import static pk.codebase.requests.HttpError.STAGE_RECEIVING;
 import static pk.codebase.requests.HttpError.STAGE_SENDING;
+import static pk.codebase.requests.HttpError.STAGE_VALIDATING;
 import static pk.codebase.requests.HttpError.UNKNOWN;
 
 class HttpBase {
@@ -70,7 +73,7 @@ class HttpBase {
     private HttpRequest.OnFileUploadProgressListener mFileProgressListener;
     private HttpFileUploadProgress mUploadProgress;
 
-    HttpResponse request(String method, String url, Object payloadRaw, HttpHeaders headers,
+    HttpResponse request(String method, String urlRaw, Object payloadRaw, HttpHeaders headers,
                          HttpOptions options) throws HttpError {
         int payloadLength = 0;
         Object payload = payloadRaw;
@@ -93,25 +96,30 @@ class HttpBase {
                     payloadLength = pojoPayload.getBytes().length;
                     payload = pojoPayload;
                 } catch (Exception e) {
-                    throw new HttpError(CANNOT_SERIALIZE, STAGE_CONNECTING, e);
+                    throw new HttpError(CANNOT_SERIALIZE, STAGE_VALIDATING, e);
                 }
             }
+        }
+        URL url;
+        try {
+            url = new URL(urlRaw);
+        } catch (Exception e) {
+            throw new HttpError(INVALID_URL, STAGE_VALIDATING, e);
         }
         connect(method, url, payloadLength, headers, options);
         send(payload);
         readResponse();
         cleanup();
-        return new HttpResponse(mStatus, mStatusText, mResponseText, url);
+        return new HttpResponse(mStatus, mStatusText, mResponseText, urlRaw);
     }
 
     void setUploadProgressListener(HttpRequest.OnFileUploadProgressListener listener) {
         mFileProgressListener = listener;
     }
 
-    private void connect(String method, String endpoint, int payloadLength,
+    private void connect(String method, URL url, int payloadLength,
                          HttpHeaders headers, HttpOptions options) throws HttpError {
         try {
-            URL url = new URL(endpoint);
             mConn = (HttpURLConnection) url.openConnection();
             mConn.setRequestMethod(method);
             mConn.setConnectTimeout(options.connectTimeout);
@@ -123,9 +131,7 @@ class HttpBase {
             mConn.connect();
         } catch (Exception e) {
             HttpError error = new HttpError(STAGE_CONNECTING, e);
-            if (e instanceof MalformedURLException) {
-                error.setCode(INVALID_URL);
-            } else if (e instanceof ConnectException) {
+            if (e instanceof ConnectException) {
                 if (e.getMessage().contains("ECONNREFUSED")) {
                     error.setCode(CONNECTION_REFUSED);
                 } else if (e.getMessage().contains("ENETUNREACH")) {

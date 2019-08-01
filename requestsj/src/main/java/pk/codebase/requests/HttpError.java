@@ -21,10 +21,11 @@ package pk.codebase.requests;
 public class HttpError extends Exception {
 
     public static final short STAGE_UNKNOWN = 0;
-    public static final short STAGE_CONNECTING = 1;
-    public static final short STAGE_SENDING = 2;
-    public static final short STAGE_RECEIVING = 3;
-    public static final short STAGE_CLEANING = 4;
+    public static final short STAGE_VALIDATING = 1;
+    public static final short STAGE_CONNECTING = 2;
+    public static final short STAGE_SENDING = 3;
+    public static final short STAGE_RECEIVING = 4;
+    public static final short STAGE_CLEANING = 5;
 
     public static final short UNKNOWN = 0;
     public static final short INVALID_URL = 1;

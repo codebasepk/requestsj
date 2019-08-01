@@ -73,7 +73,7 @@ class HttpBase {
     private String mResponseText;
     private short mStatus;
     private HttpRequest.OnFileUploadProgressListener mFileProgressListener;
-    private HttpUploadProgress mUploadProgress;
+    private HttpFileUploadProgress mUploadProgress;
 
     HttpResponse request(String method, String url, Object payloadRaw, Map<String, String> headers,
                          int connectTimeout, int readTimeout) throws HttpError {
@@ -173,7 +173,7 @@ class HttpBase {
     }
 
     private void sendRequest(FormData data) throws HttpError {
-        mUploadProgress = new HttpUploadProgress(data.getFilesCount());
+        mUploadProgress = new HttpFileUploadProgress(data.getFilesCount());
         int currentFileNumber = 0;
         ArrayList<FormData.MultiPartData> requestItems = data.getData();
         for (FormData.MultiPartData item : requestItems) {
@@ -182,7 +182,7 @@ class HttpBase {
                 sendRequestData(item.getContent());
             } else {
                 currentFileNumber += 1;
-                mUploadProgress.setCurrentNumber(currentFileNumber);
+                mUploadProgress.setFileNumber(currentFileNumber);
                 writeContent(item.getContent());
             }
             sendRequestData(item.getPostContentData());
@@ -288,7 +288,7 @@ class HttpBase {
                 uploaded += bytesRead;
                 if (mFileProgressListener != null) {
                     mUploadProgress.setCurrentFile(uploadFile);
-                    mUploadProgress.setUpload(uploaded);
+                    mUploadProgress.setUploaded(uploaded);
                     mUploadProgress.setTotal(total);
                     mFileProgressListener.onFileUploadProgress(mUploadProgress);
                 }

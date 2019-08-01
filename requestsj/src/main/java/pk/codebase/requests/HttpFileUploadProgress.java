@@ -20,30 +20,30 @@ package pk.codebase.requests;
 
 import java.io.File;
 
-public class HttpUploadProgress {
-    public File currentFile;
-    public long upload;
+public class HttpFileUploadProgress {
+    public File file;
+    public long uploaded;
     public long total;
-    public int currentNumber;
+    public int fileNumber;
     public int filesCount;
 
-    public HttpUploadProgress(int count) {
+    public HttpFileUploadProgress(int count) {
         filesCount = count;
     }
 
     void setCurrentFile(File currentFile) {
-        this.currentFile = currentFile;
+        this.file = currentFile;
     }
 
-    void setUpload(long upload) {
-        this.upload = upload;
+    void setUploaded(long uploaded) {
+        this.uploaded = uploaded;
     }
 
     void setTotal(long total) {
         this.total = total;
     }
 
-    void setCurrentNumber(int currentNumber) {
-        this.currentNumber = currentNumber;
+    void setFileNumber(int fileNumber) {
+        this.fileNumber = fileNumber;
     }
 }

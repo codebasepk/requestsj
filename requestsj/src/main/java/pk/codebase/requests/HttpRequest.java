@@ -21,9 +21,6 @@ package pk.codebase.requests;
 import android.os.Handler;
 import android.os.Looper;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -58,7 +55,7 @@ public class HttpRequest {
     }
 
     public interface OnFileUploadProgressListener {
-        void onFileUploadProgress(HttpUploadProgress progress);
+        void onFileUploadProgress(HttpFileUploadProgress progress);
     }
 
     public interface OnResponseListener {
@@ -94,7 +91,7 @@ public class HttpRequest {
         HttpBase http = new HttpBase();
         http.setUploadProgressListener(new OnFileUploadProgressListener() {
             @Override
-            public void onFileUploadProgress(HttpUploadProgress progress) {
+            public void onFileUploadProgress(HttpFileUploadProgress progress) {
                 emitOnFileUploadProgress(progress);
             }
         });
@@ -294,7 +291,7 @@ public class HttpRequest {
         }
     }
 
-    private void emitOnFileUploadProgress(final HttpUploadProgress progress) {
+    private void emitOnFileUploadProgress(final HttpFileUploadProgress progress) {
         if (mOnFileUploadProgressListener != null) {
             mHandler.post(new Runnable() {
                 @Override

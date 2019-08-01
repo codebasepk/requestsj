@@ -14,7 +14,7 @@ bintray {
         licenses = ['GPL-3.0']
         vcsUrl = 'https://github.com/codebasepk/requestsj.git'
         version {
-            name = '0.10.0'
+            name = '0.11.0'
             released = new Date()
         }
     }
@@ -68,7 +68,7 @@ artifacts {
 
 project.archivesBaseName = 'requestsj'
 group = 'pk.codebase.requestsj'
-version = '0.10.0'
+version = '0.11.0'
 install {
     repositories.mavenInstaller {
         pom {

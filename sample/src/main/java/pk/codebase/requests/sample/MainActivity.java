@@ -22,12 +22,19 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.HashMap;
+
+import pk.codebase.requests.FormData;
 import pk.codebase.requests.HttpError;
+import pk.codebase.requests.HttpHeaders;
 import pk.codebase.requests.HttpRequest;
 import pk.codebase.requests.HttpResponse;
 
-public class MainActivity extends AppCompatActivity implements HttpRequest.OnResponseListener,
-        HttpRequest.OnErrorListener {
+public class MainActivity extends AppCompatActivity {
 
     private final String URL_BASE = "https://httpbin.org";
 
@@ -36,21 +43,21 @@ public class MainActivity extends AppCompatActivity implements HttpRequest.OnRes
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         HttpRequest request = new HttpRequest(URL_BASE);
-        request.setOnResponseListener(this);
-        request.setOnErrorListener(this);
+        request.setOnResponseListener(new HttpRequest.OnResponseListener() {
+            @Override
+            public void onResponse(HttpResponse response) {
+                if (response.code == HttpResponse.HTTP_OK) {
+                    JSONObject object = response.toJSONObject();
+                    System.out.println(object);
+                }
+            }
+        });
+        request.setOnErrorListener(new HttpRequest.OnErrorListener() {
+            @Override
+            public void onError(HttpError error) {
+                // There was an error, deal with it
+            }
+        });
         request.get("/get");
-    }
-
-    @Override
-    public void onError(HttpError error) {
-        System.out.println(error.code);
-        System.out.println(error.reason);
-        System.out.println(error.stage);
-        error.printStackTrace();
-    }
-
-    @Override
-    public void onResponse(HttpResponse response) {
-        System.out.println(response.text);
     }
 }

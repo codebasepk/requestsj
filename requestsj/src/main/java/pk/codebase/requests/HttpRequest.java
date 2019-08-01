@@ -21,8 +21,6 @@ package pk.codebase.requests;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

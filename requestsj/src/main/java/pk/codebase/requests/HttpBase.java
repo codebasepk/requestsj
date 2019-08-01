@@ -18,8 +18,6 @@
 
 package pk.codebase.requests;
 
-import android.net.Uri;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -35,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;

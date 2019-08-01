@@ -33,8 +33,7 @@ public class FormData {
     private int mFilesCount;
 
     static final String BOUNDARY = BOUNDARY_LINE + System.currentTimeMillis();
-    public static final String FINISH_LINE = String.format(
-            "%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
+    static final String FINISH_LINE = String.format("%s%s%s%s", DASHES, BOUNDARY, DASHES, CRLF);
 
     static final int TYPE_CONTENT_TEXT = 1;
     static final int TYPE_CONTENT_FILE = 2;

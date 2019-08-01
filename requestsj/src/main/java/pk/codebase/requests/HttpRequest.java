@@ -74,8 +74,8 @@ public class HttpRequest {
         mOnResponseListener = listener;
     }
 
-    private void request(String method, String rawURL, Object payload, HttpHeaders headers,
-                         HttpOptions options) {
+    private void actuallyRequest(String method, String rawURL, Object payload, HttpHeaders headers,
+                                 HttpOptions options) {
         String url = rawURL;
         if (url != null) {
             if (!url.startsWith("http") && !mBaseURL.isEmpty()) {
@@ -120,6 +120,16 @@ public class HttpRequest {
         }
     }
 
+    private void request(final String method, final String rawURL, final Object payload,
+                         final HttpHeaders headers, final HttpOptions options) {
+        mThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                actuallyRequest(method, rawURL, payload, headers, options);
+            }
+        });
+    }
+
     public void get(String url) {
         get(url, null, null);
     }
@@ -132,14 +142,8 @@ public class HttpRequest {
         get(url, null, options);
     }
 
-    public void get(final String url, final HttpHeaders headers,
-                    final HttpOptions options) {
-        mThread.submit(new Runnable() {
-            @Override
-            public void run() {
-                request("GET", url, null, headers, options);
-            }
-        });
+    public void get(String url, HttpHeaders headers, HttpOptions options) {
+        request("GET", url, null, headers, options);
     }
 
     public void post(String url) {
@@ -166,14 +170,8 @@ public class HttpRequest {
         post(url, payload, null, options);
     }
 
-    public void post(final String url, final Object payload, final HttpHeaders headers,
-                     final HttpOptions options) {
-         mThread.submit(new Runnable() {
-             @Override
-             public void run() {
-                 request("POST", url, payload, headers, options);
-             }
-         });
+    public void post(String url, Object payload, HttpHeaders headers, HttpOptions options) {
+        request("POST", url, payload, headers, options);
     }
 
     public void put(String url) {
@@ -200,14 +198,8 @@ public class HttpRequest {
         put(url, payload, null, options);
     }
 
-    public void put(final String url, final Object payload, final HttpHeaders headers,
-                    final HttpOptions options) {
-        mThread.submit(new Runnable() {
-            @Override
-            public void run() {
-                request("PUT", url, payload, headers, options);
-            }
-        });
+    public void put(String url, Object payload, HttpHeaders headers, HttpOptions options) {
+        request("PUT", url, payload, headers, options);
     }
 
     public void patch(String url) {
@@ -234,14 +226,8 @@ public class HttpRequest {
         patch(url, payload, null, options);
     }
 
-    public void patch(final String url, final Object payload, final HttpHeaders headers,
-                      final HttpOptions options) {
-        mThread.submit(new Runnable() {
-            @Override
-            public void run() {
-                request("PATCH", url, payload, headers, options);
-            }
-        });
+    public void patch(String url, Object payload, HttpHeaders headers, HttpOptions options) {
+        request("PATCH", url, payload, headers, options);
     }
 
     public void delete(String url) {
@@ -268,14 +254,8 @@ public class HttpRequest {
         delete(url, payload, null, options);
     }
 
-    public void delete(final String url, final Object payload, final HttpHeaders headers,
-                       final HttpOptions options) {
-        mThread.submit(new Runnable() {
-            @Override
-            public void run() {
-                request("DELETE", url, payload, headers, options);
-            }
-        });
+    public void delete(String url, Object payload, HttpHeaders headers, HttpOptions options) {
+        request("DELETE", url, payload, headers, options);
     }
 
     private void emitOnResponse(final HttpResponse response) {

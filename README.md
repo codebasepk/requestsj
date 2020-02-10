@@ -5,7 +5,7 @@ Requests for Android
 The build is hosted on jcenter so you could just add the line:
 
 ```
-implementation 'pk.codebase.requestsj:requestsj:0.11.1'
+implementation 'pk.codebase.requests:requests:0.6'
 ```
 
 # Usage

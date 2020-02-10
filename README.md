@@ -1,5 +1,7 @@
 # RequestsJ
-Requests for Android
+Requests for Android.
+
+DISCLAIMER: INSPIRED BY BUT NOT ASSOCIATED WITH https://github.com/psf/requests
 
 # Getting started
 The build is hosted on jcenter so you could just add the line:

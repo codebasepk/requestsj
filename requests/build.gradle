@@ -9,12 +9,12 @@ bintray {
     publish = true
     pkg {
         repo = 'maven'
-        name = 'requestsj'
+        name = 'requests'
         userOrg = 'basers'
         licenses = ['GPL-3.0']
         vcsUrl = 'https://github.com/codebasepk/requestsj.git'
         version {
-            name = '0.11.1'
+            name = '0.6'
             released = new Date()
         }
     }
@@ -22,7 +22,7 @@ bintray {
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.0"
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         minSdkVersion 15
@@ -34,7 +34,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     dependencies {
         api 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     }
@@ -66,17 +65,17 @@ artifacts {
     archives sourcesJar
 }
 
-project.archivesBaseName = 'requestsj'
-group = 'pk.codebase.requestsj'
-version = '0.11.1'
+project.archivesBaseName = 'requests'
+group = 'pk.codebase.requests'
+version = '0.6'
 install {
     repositories.mavenInstaller {
         pom {
             project {
                 packaging 'aar'
-                groupId 'pk.codebase.requestsj'
-                artifactId 'requestsj'
-                name 'requestsj'
+                groupId 'pk.codebase.requests'
+                artifactId 'requests'
+                name 'requests'
                 description = 'Requests for Android'
                 url 'https://github.com/codebasepk/requestsj'
 

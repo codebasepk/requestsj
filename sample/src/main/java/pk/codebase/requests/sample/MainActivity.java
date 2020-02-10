@@ -22,21 +22,14 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.util.HashMap;
-
-import pk.codebase.requests.FormData;
-import pk.codebase.requests.HttpError;
-import pk.codebase.requests.HttpHeaders;
 import pk.codebase.requests.HttpRequest;
 import pk.codebase.requests.HttpResponse;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String URL_BASE = "https://httpbin.org";
+    private static final String URL_BASE = "https://httpbin.org";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +38,13 @@ public class MainActivity extends AppCompatActivity {
         HttpRequest request = new HttpRequest(URL_BASE);
         request.setOnResponseListener(response -> {
             if (response.code == HttpResponse.HTTP_OK) {
-                JSONObject object = response.toJSONObject();
-                System.out.println(object.optString("sas"));
+                JSONObject json = response.toJSONObject();
+                System.out.println(json.optString("url"));
             }
         });
         request.setOnErrorListener(error -> {
             // There was an error, deal with it
+            System.out.println(error.reason);
         });
         request.get("/get");
     }

@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.0"
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         applicationId "pk.codebase.requestsj.sample"
@@ -24,6 +24,6 @@ android {
 }
 
 dependencies {
-    implementation project(path: ':requestsj')
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation project(path: ':requests')
+    implementation 'androidx.appcompat:appcompat:1.1.0'
 }

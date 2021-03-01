@@ -1,5 +1,5 @@
 # RequestsJ
-Requests for Android.
+Requests Java (Android, really)
 
 DISCLAIMER: INSPIRED BY BUT NOT ASSOCIATED WITH https://github.com/psf/requests
 

@@ -71,7 +71,7 @@ class HttpBase {
     private HttpFileUploadProgress mUploadProgress;
 
     HttpResponse request(String method, String urlRaw, Object payloadRaw, HttpHeaders headers,
-                         HttpOptions options) throws HttpError {
+                         HttpOptions options, HttpProxy httpProxy) throws HttpError {
         int payloadLength = 0;
         Object payload = payloadRaw;
         if (payloadRaw != null) {
@@ -103,7 +103,7 @@ class HttpBase {
         } catch (Exception e) {
             throw new HttpError(INVALID_URL, STAGE_VALIDATING, e);
         }
-        connect(method, url, payloadLength, headers, options);
+        connect(method, url, payloadLength, headers, options, httpProxy);
         send(payload);
         readResponse();
         cleanup();
@@ -115,7 +115,7 @@ class HttpBase {
     }
 
     private void connect(String method, URL url, int payloadLength,
-                         HttpHeaders headers, HttpOptions options) throws HttpError {
+                         HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) throws HttpError {
         try {
             mConn = (HttpURLConnection) url.openConnection();
             mConn.setRequestMethod(method);

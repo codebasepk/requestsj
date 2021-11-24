@@ -73,7 +73,7 @@ public class HttpRequest {
     }
 
     private void actuallyRequest(String method, String rawURL, Object payload, HttpHeaders headers,
-                                 HttpOptions options) {
+                                 HttpOptions options, HttpProxy httpProxy) {
         String url = rawURL;
         if (url != null) {
             if (!url.startsWith("http") && !mBaseURL.isEmpty()) {
@@ -110,7 +110,7 @@ public class HttpRequest {
             }
         }
         try {
-            emitOnResponse(http.request(method, url, payload, actualHeaders, actualOptions));
+            emitOnResponse(http.request(method, url, payload, actualHeaders, actualOptions, httpProxy));
         } catch (HttpError error) {
             emitOnError(error);
         } catch (Exception e) {
@@ -119,37 +119,55 @@ public class HttpRequest {
     }
 
     private void request(final String method, final String rawURL, final Object payload,
-                         final HttpHeaders headers, final HttpOptions options) {
+                         final HttpHeaders headers, final HttpOptions options, final HttpProxy httpProxy) {
         mThread.submit(new Runnable() {
             @Override
             public void run() {
-                actuallyRequest(method, rawURL, payload, headers, options);
+                actuallyRequest(method, rawURL, payload, headers, options, httpProxy);
             }
         });
     }
 
     public void get(String url) {
-        get(url, null, null);
-    }
-
-    public void get(String url, HttpHeaders headers) {
-        get(url, headers, null);
+        get(url, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void get(String url, HttpOptions options) {
-        get(url, null, options);
+        get(url, (HttpHeaders) null, options);
     }
 
     public void get(String url, HttpHeaders headers, HttpOptions options) {
-        request("GET", url, null, headers, options);
+        request("GET", url, null, headers, options, null);
     }
 
+    public void get(String url, HttpHeaders headers) {
+        get(url, headers,(HttpOptions) null);
+    }
+
+    public void get(String url, HttpProxy httpProxy) {
+        get(url, null, null, httpProxy);
+
+    }
+
+    public void get(String url, HttpHeaders headers, HttpProxy httpProxy) {
+        get(url, headers, (HttpOptions) null, httpProxy);
+    }
+
+    public void get(String url, HttpOptions options, HttpProxy httpProxy) {
+        get(url, (HttpHeaders) null, options, httpProxy);
+    }
+
+    public void get(String url, HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) {
+        request("GET", url, null, headers, options, httpProxy);
+    }
+
+
     public void post(String url) {
-        post(url, null, null, null);
+        post(url, (Object) null, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void post(String url, HttpHeaders headers) {
-        post(url, null, headers, null);
+        post(url, (Object) null, headers, (HttpOptions) null);
     }
 
     public void post(String url, HttpOptions options) {
@@ -157,11 +175,11 @@ public class HttpRequest {
     }
 
     public void post(String url, Object payload) {
-        post(url, payload, null, null);
+        post(url, payload, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void post(String url, Object payload, HttpHeaders headers) {
-        post(url, payload, headers, null);
+        post(url, payload, headers, (HttpOptions) null);
     }
 
     public void post(String url, Object payload, HttpOptions options) {
@@ -169,83 +187,171 @@ public class HttpRequest {
     }
 
     public void post(String url, Object payload, HttpHeaders headers, HttpOptions options) {
-        request("POST", url, payload, headers, options);
+        request("POST", url, payload, headers, options, null);
     }
 
+    public void post(String url, HttpProxy httpProxy) {
+        post(url, null, null, null, httpProxy);
+    }
+
+
+    public void post(String url, HttpHeaders headers, HttpProxy httpProxy) {
+        post(url, null, headers, null, httpProxy);
+    }
+
+    public void post(String url, HttpOptions options, HttpProxy httpProxy) {
+        post(url, null, null, options, httpProxy);
+    }
+
+    public void post(String url, Object payload, HttpProxy httpProxy) {
+        post(url, payload, null, null, httpProxy);
+    }
+
+    public void post(String url, Object payload, HttpHeaders headers, HttpProxy httpProxy) {
+        post(url, payload, headers, null, httpProxy);
+    }
+
+    public void post(String url, Object payload, HttpOptions options, HttpProxy httpProxy) {
+        post(url, payload, null, options, httpProxy);
+    }
+
+    public void post(String url, Object payload, HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) {
+        request("POST", url, payload, headers, options, httpProxy);
+    }
+
+
     public void put(String url) {
-        put(url, null, null, null);
+        put(url, (Object) null,(HttpHeaders) null,(HttpOptions) null);
     }
 
     public void put(String url, HttpHeaders headers) {
-        put(url, null, headers, null);
+        put(url, (Object) null, headers,(HttpOptions) null);
     }
 
     public void put(String url, HttpOptions options) {
-        put(url, null, null, options);
+        put(url, (Object) null,(HttpHeaders) null,(HttpOptions) options);
     }
 
     public void put(String url, Object payload) {
-        put(url, payload, null, null);
+        put(url, payload, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void put(String url, Object payload, HttpHeaders headers) {
-        put(url, payload, headers, null);
+        put(url, payload, headers, (HttpOptions) null);
     }
 
     public void put(String url, Object payload, HttpOptions options) {
-        put(url, payload, null, options);
+        put(url, payload, (HttpHeaders) null, options);
     }
 
     public void put(String url, Object payload, HttpHeaders headers, HttpOptions options) {
-        request("PUT", url, payload, headers, options);
+        request("PUT", url, payload, headers, options, null);
+    }
+
+    public void put(String url, HttpProxy httpProxy) {
+        put(url, (Object) null,(HttpHeaders) null,(HttpOptions) null, httpProxy);
+    }
+
+    public void put(String url, HttpHeaders headers, HttpProxy httpProxy) {
+        put(url, null, headers, null, httpProxy);
+    }
+
+    public void put(String url, HttpOptions options, HttpProxy httpProxy) {
+        put(url, null, null, options, httpProxy);
+    }
+
+    public void put(String url, Object payload, HttpProxy httpProxy) {
+        put(url, payload, null, null, httpProxy);
+    }
+
+    public void put(String url, Object payload, HttpHeaders headers, HttpProxy httpProxy) {
+        put(url, payload, headers, null, httpProxy);
+    }
+
+    public void put(String url, Object payload, HttpOptions options, HttpProxy httpProxy) {
+        put(url, payload, null, options, httpProxy);
+    }
+
+    public void put(String url, Object payload, HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) {
+        request("PUT", url, payload, headers, options, httpProxy);
     }
 
     public void patch(String url) {
-        patch(url, null, null, null);
+        patch(url, (Object) null,(HttpHeaders) null,(HttpOptions) null);
     }
 
     public void patch(String url, HttpHeaders headers) {
-        patch(url, null, headers, null);
+        patch(url, (Object) null, headers, (HttpOptions) null);
     }
 
     public void patch(String url, HttpOptions options) {
-        patch(url, null, null, options);
+        patch(url, (Object) null, (HttpHeaders) null, options);
     }
 
     public void patch(String url, Object payload) {
-        patch(url, payload, null, null);
+        patch(url, payload, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void patch(String url, Object payload, HttpHeaders headers) {
-        patch(url, payload, headers, null);
+        patch(url, payload, headers, (HttpOptions) null);
     }
 
     public void patch(String url, Object payload, HttpOptions options) {
-        patch(url, payload, null, options);
+        patch(url, payload, (HttpHeaders) null, options);
     }
 
     public void patch(String url, Object payload, HttpHeaders headers, HttpOptions options) {
-        request("PATCH", url, payload, headers, options);
+        request("PATCH", url, payload, headers, options, null);
     }
 
+    //
+    public void patch(String url, HttpProxy httpProxy) {
+        patch(url, (Object) null,(HttpHeaders) null, (HttpOptions) null, httpProxy);
+    }
+
+    public void patch(String url, HttpHeaders headers, HttpProxy httpProxy) {
+        patch(url, (Object) null, headers, (HttpOptions) null);
+    }
+
+    public void patch(String url, HttpOptions options, HttpProxy httpProxy) {
+        patch(url, (Object) null,(HttpHeaders) null, options, httpProxy);
+    }
+
+    public void patch(String url, Object payload, HttpProxy httpProxy) {
+        patch(url, payload, (HttpHeaders) null,(HttpOptions) null, httpProxy);
+    }
+
+    public void patch(String url, Object payload, HttpHeaders headers, HttpProxy httpProxy) {
+        patch(url, payload, headers,(HttpOptions) null, httpProxy);
+    }
+
+    public void patch(String url, Object payload, HttpOptions options, HttpProxy httpProxy) {
+        patch(url, payload, null, options, httpProxy);
+    }
+
+    public void patch(String url, Object payload, HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) {
+        request("PATCH", url, payload, headers, options, httpProxy);
+    }
+    //
+
     public void delete(String url) {
-        delete(url, null, null, null);
+        delete(url, (Object) null,(HttpHeaders) null,(HttpOptions) null);
     }
 
     public void delete(String url, HttpHeaders headers) {
-        delete(url, null, headers, null);
+        delete(url, (Object) null, headers,(HttpOptions) null);
     }
 
     public void delete(String url, HttpOptions options) {
-        delete(url, null, null, options);
+        delete(url, (Object) null, (HttpHeaders) null, options);
     }
 
     public void delete(String url, Object payload) {
-        delete(url, payload, null, null);
+        delete(url, payload, (HttpHeaders) null,(HttpOptions) null);
     }
 
     public void delete(String url, Object payload, HttpHeaders headers) {
-        delete(url, payload, headers, null);
+        delete(url, payload, headers, (HttpOptions) null);
     }
 
     public void delete(String url, Object payload, HttpOptions options) {
@@ -253,7 +359,35 @@ public class HttpRequest {
     }
 
     public void delete(String url, Object payload, HttpHeaders headers, HttpOptions options) {
-        request("DELETE", url, payload, headers, options);
+        request("DELETE", url, payload, headers, options, null);
+    }
+
+    public void delete(String url, HttpProxy httpProxy) {
+        delete(url, null, null, null, httpProxy);
+    }
+
+    public void delete(String url, HttpHeaders headers, HttpProxy httpProxy) {
+        delete(url, null, headers, null, httpProxy);
+    }
+
+    public void delete(String url, HttpOptions options, HttpProxy httpProxy) {
+        delete(url, null, null, options, httpProxy);
+    }
+
+    public void delete(String url, Object payload, HttpProxy httpProxy) {
+        delete(url, payload, null, null, httpProxy);
+    }
+
+    public void delete(String url, Object payload, HttpHeaders headers, HttpProxy httpProxy) {
+        delete(url, payload, headers, null, httpProxy);
+    }
+
+    public void delete(String url, Object payload, HttpOptions options, HttpProxy httpProxy) {
+        delete(url, payload, null, options, httpProxy);
+    }
+
+    public void delete(String url, Object payload, HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) {
+        request("DELETE", url, payload, headers, options, httpProxy);
     }
 
     private void emitOnResponse(final HttpResponse response) {

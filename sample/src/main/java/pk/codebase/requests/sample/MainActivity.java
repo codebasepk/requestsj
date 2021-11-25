@@ -19,11 +19,15 @@
 package pk.codebase.requests.sample;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import pk.codebase.requests.HttpHeaders;
+import pk.codebase.requests.HttpProxy;
 import pk.codebase.requests.HttpRequest;
 import pk.codebase.requests.HttpResponse;
 
@@ -35,17 +39,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        HttpRequest request = new HttpRequest(URL_BASE);
+        HttpRequest request = new HttpRequest();
         request.setOnResponseListener(response -> {
             if (response.code == HttpResponse.HTTP_OK) {
-                JSONObject json = response.toJSONObject();
-                System.out.println(json.optString("url"));
+                System.out.println(response.text);
             }
         });
         request.setOnErrorListener(error -> {
             // There was an error, deal with it
             System.out.println(error.reason);
         });
-        request.get("/get");
+        request.post("https://icanhazip.com/");
     }
 }

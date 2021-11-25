@@ -7,6 +7,8 @@ public class HttpProxy {
     private String username;
     private String password;
 
+
+
     public HttpProxy(String host, int port) {
         this.host = host;
         this.port = port;

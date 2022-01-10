@@ -33,8 +33,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.ProtocolException;
+import java.net.Proxy;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.SocketOptions;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,6 +63,9 @@ import static pk.codebase.requests.HttpError.STAGE_RECEIVING;
 import static pk.codebase.requests.HttpError.STAGE_SENDING;
 import static pk.codebase.requests.HttpError.STAGE_VALIDATING;
 import static pk.codebase.requests.HttpError.UNKNOWN;
+
+import android.net.InetAddresses;
+import android.util.Log;
 
 class HttpBase {
 
@@ -115,13 +123,32 @@ class HttpBase {
     }
 
     private void connect(String method, URL url, int payloadLength,
-                         HttpHeaders headers, HttpOptions options, HttpProxy httpProxy) throws HttpError {
+                         HttpHeaders headers, HttpOptions options, final HttpProxy httpProxy) throws HttpError {
         try {
-            mConn = (HttpURLConnection) url.openConnection();
+            if (httpProxy != null) {
+                if (httpProxy.getUsername() != null && httpProxy.getPassword() != null) {
+                    java.net.Authenticator authenticator = new java.net.Authenticator() {
+
+                        protected java.net.PasswordAuthentication getPasswordAuthentication() {
+                            return new java.net.PasswordAuthentication(httpProxy.getUsername(),
+                                    httpProxy.getPassword().toCharArray());
+                        }
+                    };
+
+                    System.setProperty("java.net.socks.username", httpProxy.getUsername());
+                    System.setProperty("java.net.socks.password", httpProxy.getPassword());
+                    java.net.Authenticator.setDefault(authenticator);
+                }
+                SocketAddress socketAddress = new InetSocketAddress(httpProxy.getHost(), httpProxy.getPort());
+                Proxy proxy = new Proxy(Proxy.Type.SOCKS, socketAddress);
+                mConn = (HttpURLConnection) url.openConnection(proxy);
+            } else {
+                mConn = (HttpURLConnection) url.openConnection();
+            }
             mConn.setRequestMethod(method);
             mConn.setConnectTimeout(options.connectTimeout);
             mConn.setReadTimeout(options.readTimeout);
-            for (Map.Entry<String, String> header: headers.entrySet()) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
                 mConn.setRequestProperty(header.getKey(), header.getValue());
             }
             mConn.setFixedLengthStreamingMode(payloadLength);
@@ -235,7 +262,6 @@ class HttpBase {
         } catch (IOException ignore) {
             mInputStream = mConn.getErrorStream();
         }
-
         try {
             mStatus = (short) mConn.getResponseCode();
             mStatusText = mConn.getResponseMessage();
